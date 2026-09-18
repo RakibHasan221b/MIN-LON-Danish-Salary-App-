@@ -20,13 +20,14 @@ docs/
                                        audited against V1, and how each was restored/replaced
   v1_2_implementation_audit.md        V1.2: pre-implementation audit of the existing repo
   tax_data_verification_checklist.md  V1.2: source/date/status for every tax constant
+  deployment.md                       Deployment: Vercel (frontend) + Render/Railway (backend) setup
 ```
 
 ## Running it
 
 **Engine tests:**
 ```
-pip install -r requirements.txt   # or: pip install pytest fastapi "uvicorn[standard]"
+pip install -r requirements-dev.txt   # runtime deps + pytest/httpx for testing
 pytest app/tests/ -v
 ```
 
