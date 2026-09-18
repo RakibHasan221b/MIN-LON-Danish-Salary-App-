@@ -15,6 +15,7 @@ const METHOD_LABELS: Record<string, string> = {
   standard_estimate: "Standard estimate (2026 rules)",
   tax_card: "Your tax card figures",
   frikort: "Frikort (tax-free up to your balance)",
+  monthly_payslip: "Your monthly payslip figures",
 };
 
 export default function ResultBreakdown({
@@ -27,6 +28,7 @@ export default function ResultBreakdown({
   const isTaxCard = result.calculation_basis === "tax_card";
   const isFrikort = result.calculation_basis === "frikort";
   const isStandard = result.calculation_basis === "standard_estimate";
+  const isMonthlyPayslip = result.calculation_basis === "monthly_payslip";
   const [showHoliday, setShowHoliday] = useState(false);
   const [showTotalWithHoliday, setShowTotalWithHoliday] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
@@ -38,23 +40,30 @@ export default function ResultBreakdown({
   // for. Pulled from the individual result fields (not the generic
   // `breakdown` array) so the labels and grouping are exactly what V1.2
   // specifies, with zero-value optional lines hidden.
-  const level2Lines: { label: string; amount: number; hideIfZero?: boolean }[] = [
-    { label: "Gross income", amount: result.gross_income },
-    ...(result.tips ? [{ label: "of which tips", amount: result.tips }] : []),
-    { label: "ATP", amount: -result.atp_employee_contribution },
-    { label: "AM-bidrag", amount: -result.am_bidrag },
-    ...(isStandard
-      ? [
-          { label: "State tax", amount: -result.state_tax_total },
-          { label: "Municipal tax", amount: -result.municipal_tax },
-        ]
-      : [{ label: isFrikort ? "Income tax (tax-free)" : "Withheld tax", amount: -result.state_tax_total }]),
-    ...(result.is_church_member && result.church_tax
-      ? [{ label: "Church tax", amount: -result.church_tax }]
-      : []),
-    { label: "Total tax", amount: -result.total_tax },
-    { label: "Net income", amount: result.net_income },
-  ];
+  // Monthly-first flow (product decision): use the backend's own
+  // exact-order breakdown (Gross salary / AM-bidrag / Monthly fradrag /
+  // Taxable after fradrag / A-tax / ATP / Estimated net salary) rather
+  // than the generic level-2 construction below, which assumes the
+  // standard/tax-card/frikort shapes.
+  const level2Lines: { label: string; amount: number; hideIfZero?: boolean }[] = isMonthlyPayslip
+    ? result.breakdown.map((l) => ({ label: l.label, amount: l.amount }))
+    : [
+        { label: "Gross income", amount: result.gross_income },
+        ...(result.tips ? [{ label: "of which tips", amount: result.tips }] : []),
+        { label: "ATP", amount: -result.atp_employee_contribution },
+        { label: "AM-bidrag", amount: -result.am_bidrag },
+        ...(isStandard
+          ? [
+              { label: "State tax", amount: -result.state_tax_total },
+              { label: "Municipal tax", amount: -result.municipal_tax },
+            ]
+          : [{ label: isFrikort ? "Income tax (tax-free)" : "Withheld tax", amount: -result.state_tax_total }]),
+        ...(result.is_church_member && result.church_tax
+          ? [{ label: "Church tax", amount: -result.church_tax }]
+          : []),
+        { label: "Total tax", amount: -result.total_tax },
+        { label: "Net income", amount: result.net_income },
+      ];
 
   return (
     <div>
@@ -84,8 +93,15 @@ export default function ResultBreakdown({
         </div>
         {isStandard && (
           <p className="hint" style={{ marginTop: 8 }}>
-            This is an estimate, not an exact payslip — it does not use your personal
+            This is an estimate, not an exact payslip, it does not use your personal
             SKAT-issued tax card.
+          </p>
+        )}
+        {isMonthlyPayslip && (
+          <p className="hint" style={{ marginTop: 8 }}>
+            {result.tax_percentage_estimated
+              ? "You entered a monthly deduction but not a tax percentage, so we estimated your traekprocent from the 2026 standard rules. It's labeled as an estimate, not your actual SKAT-issued tax percentage."
+              : "Calculated payslip-style from the monthly deduction and tax percentage you entered, the same way your employer's payroll would."}
           </p>
         )}
         {result.age_am_bidrag_exempt && (
@@ -101,14 +117,18 @@ export default function ResultBreakdown({
         {level2Lines.map((line) => (
           <div
             key={line.label}
-            className={`breakdown-line ${line.label === "Net income" ? "total" : ""}`}
+            className={`breakdown-line ${
+              line.label === "Net income" || line.label === "Estimated net salary" ? "total" : ""
+            }`}
           >
             <span>{line.label}</span>
             <span
               className={
                 line.amount < 0
                   ? "amount-negative"
-                  : line.label === "Net income" || line.label === "Gross income"
+                  : ["Net income", "Gross income", "Gross salary", "Estimated net salary", "Taxable after fradrag"].includes(
+                      line.label
+                    )
                   ? undefined
                   : "amount-positive"
               }
@@ -173,6 +193,13 @@ export default function ResultBreakdown({
             {isFrikort && result.remaining_frikort_amount != null && (
               <> Remaining Frikort amount entered: {formatDKK(result.remaining_frikort_amount)}.</>
             )}
+            {isMonthlyPayslip && result.tax_percentage_used != null && (
+              <>
+                {" "}
+                Tax percentage used: {(result.tax_percentage_used * 100).toFixed(1)}%
+                {result.tax_percentage_estimated ? " (estimated)" : " (as you entered it)"}.
+              </>
+            )}
           </p>
 
           <h3 style={{ fontSize: "0.95rem" }}>Annualized figures</h3>
@@ -229,6 +256,8 @@ export default function ResultBreakdown({
           ? "based on the tax card figures you supplied"
           : isFrikort
           ? "based on the Frikort balance you supplied"
+          : isMonthlyPayslip
+          ? "based on the monthly deduction and tax percentage you supplied"
           : "a standard estimate"}{" "}
         and does not claim to be exactly what your employer will pay you unless your
         actual SKAT tax-card details were used.

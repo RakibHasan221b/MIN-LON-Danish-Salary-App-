@@ -59,6 +59,10 @@ _ALWAYS_SHOW_LABELS = {
     "Base gross",
     "Estimated net salary",
     "Income tax (Frikort — tax-free)",
+    "Gross salary",
+    "Monthly fradrag",
+    "Taxable after fradrag",
+    "A-tax / withheld tax",
 }
 
 
@@ -87,6 +91,8 @@ def _to_salary_input(req: CalculateRequest) -> SalaryInput:
         tax_card_percentage=req.tax_card_percentage,
         tax_card_monthly_deduction=req.tax_card_monthly_deduction,
         remaining_frikort_amount=req.remaining_frikort_amount,
+        monthly_deduction=req.monthly_deduction,
+        tax_percentage=req.tax_percentage,
         tips=req.tips or Decimal(0),
         extra_deduction=req.extra_deduction or Decimal(0),
     )
@@ -125,6 +131,13 @@ def _to_response(result: TaxResult) -> CalculateResponse:
             if result.remaining_frikort_amount is not None
             else None
         ),
+        monthly_deduction_applied=(
+            float(result.monthly_deduction_applied) if result.monthly_deduction_applied else None
+        ),
+        tax_percentage_used=(
+            float(result.tax_percentage_used) if result.tax_percentage_used is not None else None
+        ),
+        tax_percentage_estimated=result.tax_percentage_estimated,
         holiday_pay=HolidayPayOut(
             rate_label=result.holiday_pay.rate_label,
             gross=float(result.holiday_pay.gross),

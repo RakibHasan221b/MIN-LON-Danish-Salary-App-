@@ -14,6 +14,7 @@ class CalculationBasis(str, Enum):
     STANDARD_ESTIMATE = "standard_estimate"
     TAX_CARD = "tax_card"
     FRIKORT = "frikort"
+    MONTHLY_PAYSLIP = "monthly_payslip"
 
 
 @dataclass(frozen=True)
@@ -91,6 +92,12 @@ class TaxResult:
     age_am_bidrag_exempt: bool = False  # see docs/research_2026.md item 14
     remaining_frikort_amount: Decimal | None = None  # echoed back for FRIKORT results
 
+    # Monthly-first simplified default flow (MONTHLY_PAYSLIP basis only).
+    # See app/calculations/payslip.py.
+    monthly_deduction_applied: Decimal = Decimal(0)
+    tax_percentage_used: Decimal | None = None  # the trækprocent actually applied (0..1)
+    tax_percentage_estimated: bool = False  # True when the user left % blank and we estimated it
+
     @property
     def total_tax(self) -> Decimal:
         return (
@@ -106,6 +113,9 @@ class TaxResult:
         """Ordered, display-ready line items. Zero-value rows are omitted
         by the caller (per spec) — this returns every computed line and
         lets the presentation layer decide what to hide."""
+        if self.calculation_basis is CalculationBasis.MONTHLY_PAYSLIP:
+            return self._monthly_payslip_breakdown()
+
         lines: list[BreakdownLine] = []
         if self.tips:
             lines.append(BreakdownLine("Base gross", self.base_gross_income))
@@ -137,5 +147,25 @@ class TaxResult:
             lines.append(BreakdownLine("Church tax", -self.church_tax))
         if self.other_adjustments:
             lines.append(BreakdownLine("Other applicable adjustment", -self.other_adjustments))
+        lines.append(BreakdownLine("Estimated net salary", self.net_income))
+        return lines
+
+    def _monthly_payslip_breakdown(self) -> list[BreakdownLine]:
+        """Simplified monthly-first flow: gross -> AM-bidrag -> fradrag ->
+        trækprocent -> ATP -> net, in that literal order — matches the
+        product decision that this default flow needs no bracket-by-
+        bracket detail, just the payslip-style line items."""
+        lines: list[BreakdownLine] = []
+        if self.tips:
+            lines.append(BreakdownLine("Base gross", self.base_gross_income))
+            lines.append(BreakdownLine("Tips / extra income", self.tips))
+            lines.append(BreakdownLine("Gross salary", self.gross_income))
+        else:
+            lines.append(BreakdownLine("Gross salary", self.gross_income))
+        lines.append(BreakdownLine("AM-bidrag", -self.am_bidrag))
+        lines.append(BreakdownLine("Monthly fradrag", -self.monthly_deduction_applied))
+        lines.append(BreakdownLine("Taxable after fradrag", self.taxable_income))
+        lines.append(BreakdownLine("A-tax / withheld tax", -self.state_tax_total))
+        lines.append(BreakdownLine("ATP", -self.atp_employee_contribution))
         lines.append(BreakdownLine("Estimated net salary", self.net_income))
         return lines

@@ -44,6 +44,11 @@ class CalculateRequest(BaseModel):
     # V1.2 — Frikort. See docs/research_2026.md item 15.
     remaining_frikort_amount: Optional[Decimal] = Field(default=None, ge=0)
 
+    # Monthly-first simplified default flow. Both optional; mutually
+    # exclusive with tax_card_mode="my_tax_card" (the advanced flow).
+    monthly_deduction: Optional[Decimal] = Field(default=None, ge=0)
+    tax_percentage: Optional[Decimal] = Field(default=None, ge=0, le=1)
+
     period: Literal["monthly", "annual"] = "monthly"
 
     @model_validator(mode="after")
@@ -73,6 +78,11 @@ class CalculateRequest(BaseModel):
                     raise ValueError(
                         "Please enter your monthly deduction (fradrag) for your hovedkort."
                     )
+            if self.monthly_deduction is not None or self.tax_percentage is not None:
+                raise ValueError(
+                    "Monthly deduction and tax percentage are part of the simple monthly flow, "
+                    "they can't be combined with 'Use my tax card'."
+                )
         return self
 
 
@@ -125,6 +135,10 @@ class CalculateResponse(BaseModel):
 
     age_am_bidrag_exempt: bool
     remaining_frikort_amount: Optional[float] = None
+
+    monthly_deduction_applied: Optional[float] = None
+    tax_percentage_used: Optional[float] = None
+    tax_percentage_estimated: bool = False
 
     holiday_pay: HolidayPayOut
     total_with_holiday: TotalWithHolidayOut

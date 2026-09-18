@@ -51,3 +51,4 @@ Thumbs.db
 # --- Misc build/cache output ---
 *.log
 dist/
+*.tsbuildinfo

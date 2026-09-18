@@ -24,6 +24,7 @@ from decimal import ROUND_HALF_UP, Decimal
 
 from app.calculations import allowances, am_bidrag, atp, municipal_tax, salary, tax
 from app.calculations.frikort import compute_frikort_withholding
+from app.calculations.payslip import compute_payslip_withholding
 from app.calculations.holiday_pay import compute_holiday_pay
 from app.calculations.withholding import compute_tax_card_withholding
 from app.data_loader import get_municipality, load_tax_rules
@@ -365,6 +366,169 @@ def _tax_card_estimate(
     )
 
 
+def _monthly_payslip_estimate(
+    salary_input: SalaryInput,
+    base_gross_income: Decimal,
+    tips: Decimal,
+    extra_deduction: Decimal,
+    municipality: dict,
+    hours_worked: Decimal,
+    period: str,
+    tax_rules: dict,
+    tax_year: int,
+) -> TaxResult:
+    """Monthly-first simplified default flow. See app/calculations/payslip.py
+    for the exact order of operations this follows.
+
+    Case 1 (deduction + percentage both given): applies them directly.
+    Case 2 (deduction given, percentage blank): estimates the withholding
+    percentage from the standard 2026 rules for this municipality/church
+    status (reusing _standard_estimate's own effective_tax_rate), clearly
+    labelled as an estimate, never presented as the user's real trækprocent.
+    """
+    rules = _scaled_tax_rules(tax_rules, period)
+    am_rate = Decimal(str(rules["am_bidrag"]["rate"]))
+    am_exempt = am_bidrag.is_exempt_by_age(salary_input.age)
+
+    gross_income = base_gross_income + tips
+
+    # AM-bidrag computed directly on gross income here (payslip-style
+    # order) — NOT on gross-minus-ATP, unlike _standard_estimate and
+    # _tax_card_estimate. See app/calculations/payslip.py's module
+    # docstring for why this default flow uses a different order.
+    am_amount = am_bidrag.compute_am_bidrag(gross_income, am_rate, exempt=am_exempt)
+
+    monthly_deduction = salary_input.monthly_deduction or Decimal(0)
+    if period == "annual":
+        monthly_deduction *= MONTHS_PER_YEAR
+
+    atp_contribution = atp.get_atp_employee_contribution(
+        hours_worked, pay_frequency="monthly", year=tax_year
+    )
+    if period == "annual":
+        atp_contribution *= MONTHS_PER_YEAR
+
+    tax_percentage_estimated = salary_input.tax_percentage is None
+    if salary_input.tax_percentage is not None:
+        tax_percentage = salary_input.tax_percentage
+    else:
+        standard = _standard_estimate(
+            base_gross_income,
+            tips,
+            extra_deduction,
+            municipality,
+            salary_input.is_church_member,
+            hours_worked,
+            salary_input.income_type,
+            period,
+            tax_rules,
+            tax_year,
+            TaxCardMode.STANDARD_ESTIMATE,
+            salary_input.age,
+        )
+        tax_percentage = standard.effective_tax_rate
+
+    payslip = compute_payslip_withholding(
+        gross_income=gross_income,
+        am_bidrag_amount=am_amount,
+        monthly_deduction=monthly_deduction,
+        tax_percentage=tax_percentage,
+        atp_employee_contribution=atp_contribution,
+    )
+
+    total_tax = am_amount + payslip.withheld_tax + atp_contribution
+    net_income = payslip.net_income
+    effective_rate = (total_tax / gross_income) if gross_income else Decimal(0)
+
+    assumptions = [
+        "Monthly payslip-style estimate: gross income minus AM-bidrag minus your monthly "
+        "deduction (fradrag), taxed at your withholding percentage, minus ATP.",
+    ]
+    if tax_percentage_estimated:
+        assumptions.append(
+            "You didn't enter a withholding percentage, so it was estimated from standard 2026 "
+            "rules for your municipality and church membership, not your actual SKAT-issued "
+            "trækprocent. Check skat.dk or your payslip for the exact figure."
+        )
+    else:
+        assumptions.append(
+            "Uses the withholding percentage and monthly deduction you provided, confirm these "
+            "match your own skattekort/payslip for accuracy."
+        )
+    if am_exempt:
+        assumptions.append(
+            "AM-bidrag (8%) was not applied because you entered an age of 17 or under. This uses a "
+            "simplified age check (age today, not date of birth), see docs/research_2026.md item 14 "
+            "for the exact 2026 rule and its limitation."
+        )
+
+    holiday = compute_holiday_pay(
+        income_type=salary_input.income_type,
+        holiday_eligible_gross=gross_income,
+        am_rate=Decimal(0) if am_exempt else am_rate,
+        municipal_rate=Decimal(0),
+        church_rate=Decimal(0),
+        is_church_member=salary_input.is_church_member,
+        personlig_indkomst=Decimal(0),
+        state_tax_brackets=rules["state_tax_brackets"],
+        # MY_TAX_CARD here makes compute_holiday_pay apply tax_percentage
+        # directly as the marginal rate — matching _tax_card_estimate's
+        # own pattern — rather than recomputing a bracket-based rate from
+        # the (deliberately zeroed) municipal/church/personlig_indkomst
+        # args above, which are unused in this branch.
+        tax_card_mode=TaxCardMode.MY_TAX_CARD,
+        tax_card_percentage=tax_percentage,
+        holiday_pay_rules=rules["holiday_pay"],
+    )
+    holiday_rounded = holiday.__class__(
+        rate_used=holiday.rate_used,
+        rate_label=holiday.rate_label,
+        gross=round_dkk(holiday.gross),
+        am_bidrag=round_dkk(holiday.am_bidrag),
+        income_tax=round_dkk(holiday.income_tax),
+        net=round_dkk(holiday.net),
+        marginal_rate_applied=holiday.marginal_rate_applied,
+    )
+    total_with_holiday = _compute_total_with_holiday(
+        gross_income, total_tax, net_income, holiday_rounded
+    )
+
+    zero = Decimal(0)
+    return TaxResult(
+        period=period,
+        calculation_basis=CalculationBasis.MONTHLY_PAYSLIP,
+        gross_income=round_dkk(gross_income),
+        atp_employee_contribution=round_dkk(atp_contribution),
+        am_bidrag_base=round_dkk(gross_income),
+        am_bidrag=round_dkk(am_amount),
+        employment_allowance=zero,
+        job_allowance=zero,
+        taxable_income=round_dkk(payslip.taxable_after_fradrag),
+        bundskat=zero,
+        mellemskat=zero,
+        topskat=zero,
+        ekstra_topskat=zero,
+        state_tax_total=round_dkk(payslip.withheld_tax),
+        municipal_tax=zero,
+        church_tax=zero,
+        is_church_member=salary_input.is_church_member,
+        net_income=round_dkk(net_income),
+        effective_tax_rate=effective_rate,
+        municipality_name=municipality["name"],
+        tax_year=tax_year,
+        assumptions=assumptions,
+        base_gross_income=round_dkk(base_gross_income),
+        tips=round_dkk(tips),
+        extra_deduction_applied=zero,
+        holiday_pay=holiday_rounded,
+        total_with_holiday=total_with_holiday,
+        age_am_bidrag_exempt=am_exempt,
+        monthly_deduction_applied=round_dkk(monthly_deduction),
+        tax_percentage_used=tax_percentage,
+        tax_percentage_estimated=tax_percentage_estimated,
+    )
+
+
 def _frikort_estimate(
     salary_input: SalaryInput,
     base_gross_income: Decimal,
@@ -506,6 +670,19 @@ def _run(salary_input: SalaryInput, period: str, tax_year: int = 2026) -> TaxRes
             )
         return _tax_card_estimate(
             salary_input, base_gross_income, tips, hours_worked, period, tax_rules, tax_year
+        )
+
+    if salary_input.monthly_deduction is not None:
+        return _monthly_payslip_estimate(
+            salary_input,
+            base_gross_income,
+            tips,
+            extra_deduction,
+            municipality,
+            hours_worked,
+            period,
+            tax_rules,
+            tax_year,
         )
 
     return _standard_estimate(

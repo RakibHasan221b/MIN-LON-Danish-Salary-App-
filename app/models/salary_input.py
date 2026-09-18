@@ -73,6 +73,14 @@ class SalaryInput:
     # under another mode — it is rejected with a clear, actionable error.
     remaining_frikort_amount: Decimal | None = None
 
+    # Monthly-first simplified default flow (product decision: users
+    # should not need to understand Hovedkort/Bikort/Frikort or annual
+    # tax logic to use the app). Both optional; mutually exclusive with
+    # tax_card_mode=MY_TAX_CARD (that is the separate, advanced flow).
+    # See app/calculations/payslip.py for the calculation this feeds.
+    monthly_deduction: Decimal | None = None  # fradrag, e.g. 5207
+    tax_percentage: Decimal | None = None      # trækprocent, e.g. 0.37
+
     def __post_init__(self) -> None:
         if self.income_type is IncomeType.HOURLY_WAGE:
             if self.hourly_wage is None or self.hours is None:
@@ -135,3 +143,15 @@ class SalaryInput:
                 )
             if self.tax_card_monthly_deduction is not None and self.tax_card_monthly_deduction < 0:
                 raise ValueError("Monthly deduction can't be negative.")
+
+        if self.tax_percentage is not None and not (Decimal(0) <= self.tax_percentage <= Decimal(1)):
+            raise ValueError("Tax percentage must be between 0% and 100%.")
+        if self.monthly_deduction is not None and self.monthly_deduction < 0:
+            raise ValueError("Monthly deduction can't be negative.")
+        if self.tax_card_mode is TaxCardMode.MY_TAX_CARD and (
+            self.monthly_deduction is not None or self.tax_percentage is not None
+        ):
+            raise ValueError(
+                "Monthly deduction and tax percentage are part of the simple monthly flow, "
+                "they can't be combined with 'Use my tax card' (Hovedkort/Bikort/Frikort)."
+            )

@@ -25,6 +25,12 @@ export interface CalculateRequest {
   tax_card_percentage?: number;
   tax_card_monthly_deduction?: number;
   remaining_frikort_amount?: number;
+
+  // Monthly-first simplified default flow. Both optional; mutually
+  // exclusive with tax_card_mode="my_tax_card".
+  monthly_deduction?: number;
+  tax_percentage?: number;
+
   period: "monthly" | "annual";
 }
 
@@ -75,6 +81,9 @@ export interface CalculateResponse {
   effective_tax_rate: number;
   age_am_bidrag_exempt: boolean;
   remaining_frikort_amount: number | null;
+  monthly_deduction_applied: number | null;
+  tax_percentage_used: number | null;
+  tax_percentage_estimated: boolean;
   holiday_pay: HolidayPay;
   total_with_holiday: TotalWithHoliday;
   breakdown: BreakdownLine[];

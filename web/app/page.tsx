@@ -26,6 +26,14 @@ interface FormState {
   municipalityName: string;
   isChurchMember: boolean | null;
   age: string;
+
+  // Monthly-first default flow (product decision: no Hovedkort/Bikort/
+  // Frikort or annual-tax understanding required to use the app).
+  monthlyDeduction: string;
+  taxPercentage: string;
+
+  // Advanced settings — hidden behind a collapsed section, never removed.
+  showAdvanced: boolean;
   tips: string;
   extraDeduction: string;
   useTaxCard: boolean;
@@ -45,6 +53,9 @@ const DEFAULT_STATE: FormState = {
   municipalityName: "København",
   isChurchMember: null,
   age: "",
+  monthlyDeduction: "",
+  taxPercentage: "",
+  showAdvanced: false,
   tips: "",
   extraDeduction: "",
   useTaxCard: false,
@@ -119,6 +130,15 @@ export default function Home() {
               ? { tax_card_monthly_deduction: parseFloat(form.taxCardMonthlyDeduction) }
               : {}),
           }
+        : {}),
+      // Monthly deduction / tax percentage belong to the simple default
+      // flow only — the backend rejects them combined with "my tax
+      // card", so they're only sent when that advanced flow is off.
+      ...(!form.useTaxCard && form.monthlyDeduction !== ""
+        ? { monthly_deduction: parseFloat(form.monthlyDeduction) }
+        : {}),
+      ...(!form.useTaxCard && form.taxPercentage !== ""
+        ? { tax_percentage: parseFloat(form.taxPercentage) / 100 }
         : {}),
     };
 
@@ -285,179 +305,234 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="field">
-            <label className="field-label">How should we calculate this?</label>
-            <div className="toggle-group">
-              <button
-                type="button"
-                className={`toggle-btn ${form.period === "monthly" ? "active" : ""}`}
-                onClick={() => update("period", "monthly")}
-              >
-                Monthly withholding
-              </button>
-              <button
-                type="button"
-                className={`toggle-btn ${form.period === "annual" ? "active" : ""}`}
-                onClick={() => update("period", "annual")}
-              >
-                Annual tax estimate
-              </button>
-            </div>
-            <p className="hint">
-              {form.period === "monthly"
-                ? "Monthly withholding estimate: what a typical month's payslip might show, based on this month's income."
-                : "Annual tax estimate: your full-year tax, using the true yearly brackets and allowances rather than a monthly approximation."}
-            </p>
-          </div>
-
-          <div className="row">
+          {!form.useTaxCard && (
             <div className="field">
-              <label className="field-label" htmlFor="tips">
-                Estimated Tip (Optional)
-              </label>
-              <input
-                id="tips"
-                type="number"
-                inputMode="decimal"
-                min={0}
-                value={form.tips}
-                onChange={(e) => update("tips", e.target.value)}
-                placeholder="e.g. 500"
-              />
-            </div>
-            <div className="field">
-              <label className="field-label" htmlFor="extra-deduction">
-                Additional deduction (Optional)
-              </label>
-              <input
-                id="extra-deduction"
-                type="number"
-                inputMode="decimal"
-                min={0}
-                value={form.extraDeduction}
-                onChange={(e) => update("extraDeduction", e.target.value)}
-                placeholder="e.g. union dues"
-              />
-            </div>
-          </div>
-          <p className="hint" style={{ marginTop: -8, marginBottom: 16 }}>
-            Tips are taxed as ordinary income, added before tax. The additional
-            deduction reduces your municipal/church tax base — it&apos;s on top of the
-            automatic 2026 personal allowance, not a replacement for it.
-          </p>
-
-          <div className="field">
-            <label className="field-label">Tax card</label>
-            <div className="toggle-group">
-              <button
-                type="button"
-                className={`toggle-btn ${!form.useTaxCard ? "active" : ""}`}
-                onClick={() => update("useTaxCard", false)}
-              >
-                Standard estimate
-              </button>
-              <button
-                type="button"
-                className={`toggle-btn ${form.useTaxCard ? "active" : ""}`}
-                onClick={() => update("useTaxCard", true)}
-              >
-                Use my tax card
-              </button>
-            </div>
-            <p className="hint">
-              Standard estimate uses the 2026 brackets and allowances. &ldquo;Use my
-              tax card&rdquo; applies your actual SKAT withholding percentage instead.
-            </p>
-          </div>
-
-          {form.useTaxCard && (
-            <>
-              <div className="field">
-                <label className="field-label">Card type</label>
-                <div className="toggle-group">
-                  <button
-                    type="button"
-                    className={`toggle-btn ${form.taxCardType === "hovedkort" ? "active" : ""}`}
-                    onClick={() => update("taxCardType", "hovedkort")}
-                  >
-                    Hovedkort
-                  </button>
-                  <button
-                    type="button"
-                    className={`toggle-btn ${form.taxCardType === "bikort" ? "active" : ""}`}
-                    onClick={() => update("taxCardType", "bikort")}
-                  >
-                    Bikort
-                  </button>
-                  <button
-                    type="button"
-                    className={`toggle-btn ${form.taxCardType === "frikort" ? "active" : ""}`}
-                    onClick={() => update("taxCardType", "frikort")}
-                  >
-                    Frikort
-                  </button>
-                </div>
-              </div>
-
-              {form.taxCardType === "frikort" ? (
+              <label className="field-label">Your monthly tax details (optional)</label>
+              <div className="row">
                 <div className="field">
-                  <label className="field-label" htmlFor="frikort-amount">
-                    Remaining Frikort amount (DKK)
+                  <label className="field-label" htmlFor="monthly-deduction">
+                    Monthly deduction / Fradrag (DKK)
                   </label>
                   <input
-                    id="frikort-amount"
+                    id="monthly-deduction"
                     type="number"
                     inputMode="decimal"
                     min={0}
-                    value={form.remainingFrikortAmount}
-                    onChange={(e) => update("remainingFrikortAmount", e.target.value)}
-                    placeholder="e.g. 10000"
+                    value={form.monthlyDeduction}
+                    onChange={(e) => update("monthlyDeduction", e.target.value)}
+                    placeholder="e.g. 5207"
                   />
-                  <p className="hint">
-                    This is the tax-free balance left on your forskudsopgørelse — not your
-                    annual personal allowance (personfradrag). We can only estimate Frikort
-                    correctly when this period&apos;s income fits within that remaining
-                    balance; if it doesn&apos;t, we&apos;ll ask you to use Bikort instead
-                    rather than guess.
-                  </p>
                 </div>
-              ) : (
-                <div className="row">
+                <div className="field">
+                  <label className="field-label" htmlFor="tax-percentage">
+                    Tax percentage / Trækprocent (Optional)
+                  </label>
+                  <input
+                    id="tax-percentage"
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    max={100}
+                    value={form.taxPercentage}
+                    onChange={(e) => update("taxPercentage", e.target.value)}
+                    placeholder="e.g. 37"
+                  />
+                </div>
+              </div>
+              <p className="hint">
+                Both from your skattekort or payslip. Enter both for the closest match to
+                your real payslip. Enter just the deduction and we&apos;ll estimate your
+                percentage. Leave both blank for a standard 2026 estimate.
+              </p>
+            </div>
+          )}
+
+          <details
+            className="card"
+            open={form.showAdvanced}
+            onToggle={(e) => update("showAdvanced", (e.target as HTMLDetailsElement).open)}
+          >
+            <summary style={{ cursor: "pointer", fontWeight: 600 }}>
+              Advanced settings (tips, annual estimate, Hovedkort/Bikort/Frikort)
+            </summary>
+
+            <div style={{ marginTop: 16 }}>
+              <div className="row">
+                <div className="field">
+                  <label className="field-label" htmlFor="tips">
+                    Estimated Tip (Optional)
+                  </label>
+                  <input
+                    id="tips"
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    value={form.tips}
+                    onChange={(e) => update("tips", e.target.value)}
+                    placeholder="e.g. 500"
+                  />
+                </div>
+                <div className="field">
+                  <label className="field-label" htmlFor="extra-deduction">
+                    Additional deduction (Optional)
+                  </label>
+                  <input
+                    id="extra-deduction"
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    value={form.extraDeduction}
+                    onChange={(e) => update("extraDeduction", e.target.value)}
+                    placeholder="e.g. union dues"
+                  />
+                </div>
+              </div>
+              <p className="hint" style={{ marginTop: -8, marginBottom: 16 }}>
+                Tips are taxed as ordinary income, added before tax. The additional
+                deduction reduces your municipal/church tax base — it&apos;s on top of the
+                automatic 2026 personal allowance, not a replacement for it.
+              </p>
+
+              <div className="field">
+                <label className="field-label">How should we calculate this?</label>
+                <div className="toggle-group">
+                  <button
+                    type="button"
+                    className={`toggle-btn ${form.period === "monthly" ? "active" : ""}`}
+                    onClick={() => update("period", "monthly")}
+                  >
+                    Monthly withholding
+                  </button>
+                  <button
+                    type="button"
+                    className={`toggle-btn ${form.period === "annual" ? "active" : ""}`}
+                    onClick={() => update("period", "annual")}
+                  >
+                    Annual tax estimate
+                  </button>
+                </div>
+                <p className="hint">
+                  {form.period === "monthly"
+                    ? "Monthly withholding estimate: what a typical month's payslip might show, based on this month's income."
+                    : "Annual tax estimate: your full-year tax, using the true yearly brackets and allowances rather than a monthly approximation."}
+                </p>
+              </div>
+
+              <div className="field">
+                <label className="field-label">Tax card</label>
+                <div className="toggle-group">
+                  <button
+                    type="button"
+                    className={`toggle-btn ${!form.useTaxCard ? "active" : ""}`}
+                    onClick={() => update("useTaxCard", false)}
+                  >
+                    Standard estimate
+                  </button>
+                  <button
+                    type="button"
+                    className={`toggle-btn ${form.useTaxCard ? "active" : ""}`}
+                    onClick={() => update("useTaxCard", true)}
+                  >
+                    Hovedkort / Bikort / Frikort
+                  </button>
+                </div>
+                <p className="hint">
+                  Most people never need this — it&apos;s for a second job (Bikort) or a
+                  student Frikort. The monthly deduction and tax percentage fields above
+                  already cover a single, main job.
+                </p>
+              </div>
+
+              {form.useTaxCard && (
+                <>
                   <div className="field">
-                    <label className="field-label" htmlFor="tax-card-pct">
-                      Withholding %
-                    </label>
-                    <input
-                      id="tax-card-pct"
-                      type="number"
-                      inputMode="decimal"
-                      min={0}
-                      max={100}
-                      value={form.taxCardPercentage}
-                      onChange={(e) => update("taxCardPercentage", e.target.value)}
-                      placeholder="e.g. 37"
-                    />
+                    <label className="field-label">Card type</label>
+                    <div className="toggle-group">
+                      <button
+                        type="button"
+                        className={`toggle-btn ${form.taxCardType === "hovedkort" ? "active" : ""}`}
+                        onClick={() => update("taxCardType", "hovedkort")}
+                      >
+                        Hovedkort
+                      </button>
+                      <button
+                        type="button"
+                        className={`toggle-btn ${form.taxCardType === "bikort" ? "active" : ""}`}
+                        onClick={() => update("taxCardType", "bikort")}
+                      >
+                        Bikort
+                      </button>
+                      <button
+                        type="button"
+                        className={`toggle-btn ${form.taxCardType === "frikort" ? "active" : ""}`}
+                        onClick={() => update("taxCardType", "frikort")}
+                      >
+                        Frikort
+                      </button>
+                    </div>
                   </div>
-                  {form.taxCardType === "hovedkort" && (
+
+                  {form.taxCardType === "frikort" ? (
                     <div className="field">
-                      <label className="field-label" htmlFor="tax-card-deduction">
-                        Monthly deduction (DKK)
+                      <label className="field-label" htmlFor="frikort-amount">
+                        Remaining Frikort amount (DKK)
                       </label>
                       <input
-                        id="tax-card-deduction"
+                        id="frikort-amount"
                         type="number"
                         inputMode="decimal"
                         min={0}
-                        value={form.taxCardMonthlyDeduction}
-                        onChange={(e) => update("taxCardMonthlyDeduction", e.target.value)}
-                        placeholder="e.g. 4508"
+                        value={form.remainingFrikortAmount}
+                        onChange={(e) => update("remainingFrikortAmount", e.target.value)}
+                        placeholder="e.g. 10000"
                       />
+                      <p className="hint">
+                        This is the tax-free balance left on your forskudsopgørelse — not your
+                        annual personal allowance (personfradrag). We can only estimate Frikort
+                        correctly when this period&apos;s income fits within that remaining
+                        balance; if it doesn&apos;t, we&apos;ll ask you to use Bikort instead
+                        rather than guess.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="row">
+                      <div className="field">
+                        <label className="field-label" htmlFor="tax-card-pct">
+                          Withholding %
+                        </label>
+                        <input
+                          id="tax-card-pct"
+                          type="number"
+                          inputMode="decimal"
+                          min={0}
+                          max={100}
+                          value={form.taxCardPercentage}
+                          onChange={(e) => update("taxCardPercentage", e.target.value)}
+                          placeholder="e.g. 37"
+                        />
+                      </div>
+                      {form.taxCardType === "hovedkort" && (
+                        <div className="field">
+                          <label className="field-label" htmlFor="tax-card-deduction">
+                            Monthly deduction (DKK)
+                          </label>
+                          <input
+                            id="tax-card-deduction"
+                            type="number"
+                            inputMode="decimal"
+                            min={0}
+                            value={form.taxCardMonthlyDeduction}
+                            onChange={(e) => update("taxCardMonthlyDeduction", e.target.value)}
+                            placeholder="e.g. 4508"
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
+                </>
               )}
-            </>
-          )}
+            </div>
+          </details>
 
           <button
             className="calculate-btn"
