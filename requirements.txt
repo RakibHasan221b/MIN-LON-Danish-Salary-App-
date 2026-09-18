@@ -1,0 +1,12 @@
+# Pinned runtime dependencies for the Min Løn API.
+# Pinned exactly (not >=), so a deploy always installs the same versions
+# that were tested against. An unpinned install can silently pull a
+# breaking major version (e.g. pydantic v1 to v2 would break the
+# model_validator syntax already used in api/schemas.py).
+#
+# To upgrade deliberately: bump a version here, reinstall in a clean
+# virtualenv, run `pytest app/tests/ -v`, then commit the change.
+fastapi==0.141.1
+uvicorn[standard]==0.46.0
+pydantic==2.13.3
+requests==2.33.1

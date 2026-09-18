@@ -1,0 +1,590 @@
+[
+  {
+    "name": "Aabenraa",
+    "municipality_code": "0580",
+    "municipal_tax_rate": 0.256,
+    "church_tax_rate": 0.0095
+  },
+  {
+    "name": "Aalborg",
+    "municipality_code": "0851",
+    "municipal_tax_rate": 0.256,
+    "church_tax_rate": 0.0098
+  },
+  {
+    "name": "Aarhus",
+    "municipality_code": "0751",
+    "municipal_tax_rate": 0.2452,
+    "church_tax_rate": 0.0074
+  },
+  {
+    "name": "Albertslund",
+    "municipality_code": "0165",
+    "municipal_tax_rate": 0.256,
+    "church_tax_rate": 0.008
+  },
+  {
+    "name": "Allerød",
+    "municipality_code": "0201",
+    "municipal_tax_rate": 0.253,
+    "church_tax_rate": 0.0058
+  },
+  {
+    "name": "Assens",
+    "municipality_code": "0420",
+    "municipal_tax_rate": 0.261,
+    "church_tax_rate": 0.0098
+  },
+  {
+    "name": "Ballerup",
+    "municipality_code": "0151",
+    "municipal_tax_rate": 0.255,
+    "church_tax_rate": 0.0075
+  },
+  {
+    "name": "Billund",
+    "municipality_code": "0530",
+    "municipal_tax_rate": 0.24,
+    "church_tax_rate": 0.0089
+  },
+  {
+    "name": "Bornholm",
+    "municipality_code": "0400",
+    "municipal_tax_rate": 0.262,
+    "church_tax_rate": 0.0093
+  },
+  {
+    "name": "Brøndby",
+    "municipality_code": "0153",
+    "municipal_tax_rate": 0.243,
+    "church_tax_rate": 0.008
+  },
+  {
+    "name": "Brønderslev",
+    "municipality_code": "0810",
+    "municipal_tax_rate": 0.263,
+    "church_tax_rate": 0.0106
+  },
+  {
+    "name": "Dragør",
+    "municipality_code": "0155",
+    "municipal_tax_rate": 0.248,
+    "church_tax_rate": 0.0061
+  },
+  {
+    "name": "Egedal",
+    "municipality_code": "0240",
+    "municipal_tax_rate": 0.257,
+    "church_tax_rate": 0.0076
+  },
+  {
+    "name": "Esbjerg",
+    "municipality_code": "0561",
+    "municipal_tax_rate": 0.261,
+    "church_tax_rate": 0.0081
+  },
+  {
+    "name": "Faaborg-Midtfyn",
+    "municipality_code": "0430",
+    "municipal_tax_rate": 0.261,
+    "church_tax_rate": 0.0105
+  },
+  {
+    "name": "Fanø",
+    "municipality_code": "0563",
+    "municipal_tax_rate": 0.261,
+    "church_tax_rate": 0.0114
+  },
+  {
+    "name": "Favrskov",
+    "municipality_code": "0710",
+    "municipal_tax_rate": 0.257,
+    "church_tax_rate": 0.0096
+  },
+  {
+    "name": "Faxe",
+    "municipality_code": "0320",
+    "municipal_tax_rate": 0.258,
+    "church_tax_rate": 0.0108
+  },
+  {
+    "name": "Fredensborg",
+    "municipality_code": "0210",
+    "municipal_tax_rate": 0.253,
+    "church_tax_rate": 0.0064
+  },
+  {
+    "name": "Fredericia",
+    "municipality_code": "0607",
+    "municipal_tax_rate": 0.255,
+    "church_tax_rate": 0.0088
+  },
+  {
+    "name": "Frederiksberg",
+    "municipality_code": "0147",
+    "municipal_tax_rate": 0.245,
+    "church_tax_rate": 0.005
+  },
+  {
+    "name": "Frederikshavn",
+    "municipality_code": "0813",
+    "municipal_tax_rate": 0.262,
+    "church_tax_rate": 0.0103
+  },
+  {
+    "name": "Frederikssund",
+    "municipality_code": "0250",
+    "municipal_tax_rate": 0.256,
+    "church_tax_rate": 0.0096
+  },
+  {
+    "name": "Furesø",
+    "municipality_code": "0190",
+    "municipal_tax_rate": 0.2488,
+    "church_tax_rate": 0.007
+  },
+  {
+    "name": "Gentofte",
+    "municipality_code": "0157",
+    "municipal_tax_rate": 0.2414,
+    "church_tax_rate": 0.0038
+  },
+  {
+    "name": "Gladsaxe",
+    "municipality_code": "0159",
+    "municipal_tax_rate": 0.236,
+    "church_tax_rate": 0.0075
+  },
+  {
+    "name": "Glostrup",
+    "municipality_code": "0161",
+    "municipal_tax_rate": 0.246,
+    "church_tax_rate": 0.008
+  },
+  {
+    "name": "Greve",
+    "municipality_code": "0253",
+    "municipal_tax_rate": 0.2459,
+    "church_tax_rate": 0.0081
+  },
+  {
+    "name": "Gribskov",
+    "municipality_code": "0270",
+    "municipal_tax_rate": 0.254,
+    "church_tax_rate": 0.0085
+  },
+  {
+    "name": "Guldborgsund",
+    "municipality_code": "0376",
+    "municipal_tax_rate": 0.258,
+    "church_tax_rate": 0.0116
+  },
+  {
+    "name": "Haderslev",
+    "municipality_code": "0510",
+    "municipal_tax_rate": 0.263,
+    "church_tax_rate": 0.0095
+  },
+  {
+    "name": "Halsnæs",
+    "municipality_code": "0260",
+    "municipal_tax_rate": 0.257,
+    "church_tax_rate": 0.0085
+  },
+  {
+    "name": "Hedensted",
+    "municipality_code": "0766",
+    "municipal_tax_rate": 0.2552,
+    "church_tax_rate": 0.0098
+  },
+  {
+    "name": "Helsingør",
+    "municipality_code": "0217",
+    "municipal_tax_rate": 0.2582,
+    "church_tax_rate": 0.0063
+  },
+  {
+    "name": "Herlev",
+    "municipality_code": "0163",
+    "municipal_tax_rate": 0.237,
+    "church_tax_rate": 0.008
+  },
+  {
+    "name": "Herning",
+    "municipality_code": "0657",
+    "municipal_tax_rate": 0.254,
+    "church_tax_rate": 0.0099
+  },
+  {
+    "name": "Hillerød",
+    "municipality_code": "0219",
+    "municipal_tax_rate": 0.256,
+    "church_tax_rate": 0.0069
+  },
+  {
+    "name": "Hjørring",
+    "municipality_code": "0860",
+    "municipal_tax_rate": 0.2621,
+    "church_tax_rate": 0.0119
+  },
+  {
+    "name": "Holbæk",
+    "municipality_code": "0316",
+    "municipal_tax_rate": 0.253,
+    "church_tax_rate": 0.0096
+  },
+  {
+    "name": "Holstebro",
+    "municipality_code": "0661",
+    "municipal_tax_rate": 0.255,
+    "church_tax_rate": 0.0108
+  },
+  {
+    "name": "Horsens",
+    "municipality_code": "0615",
+    "municipal_tax_rate": 0.2569,
+    "church_tax_rate": 0.0079
+  },
+  {
+    "name": "Hvidovre",
+    "municipality_code": "0167",
+    "municipal_tax_rate": 0.254,
+    "church_tax_rate": 0.0072
+  },
+  {
+    "name": "Høje-Taastrup",
+    "municipality_code": "0169",
+    "municipal_tax_rate": 0.246,
+    "church_tax_rate": 0.008
+  },
+  {
+    "name": "Hørsholm",
+    "municipality_code": "0223",
+    "municipal_tax_rate": 0.237,
+    "church_tax_rate": 0.0062
+  },
+  {
+    "name": "Ikast-Brande",
+    "municipality_code": "0756",
+    "municipal_tax_rate": 0.251,
+    "church_tax_rate": 0.0097
+  },
+  {
+    "name": "Ishøj",
+    "municipality_code": "0183",
+    "municipal_tax_rate": 0.25,
+    "church_tax_rate": 0.009
+  },
+  {
+    "name": "Jammerbugt",
+    "municipality_code": "0849",
+    "municipal_tax_rate": 0.257,
+    "church_tax_rate": 0.012
+  },
+  {
+    "name": "Kalundborg",
+    "municipality_code": "0326",
+    "municipal_tax_rate": 0.242,
+    "church_tax_rate": 0.0101
+  },
+  {
+    "name": "Kerteminde",
+    "municipality_code": "0440",
+    "municipal_tax_rate": 0.261,
+    "church_tax_rate": 0.0098
+  },
+  {
+    "name": "Kolding",
+    "municipality_code": "0621",
+    "municipal_tax_rate": 0.255,
+    "church_tax_rate": 0.0092
+  },
+  {
+    "name": "København",
+    "municipality_code": "0101",
+    "municipal_tax_rate": 0.2339,
+    "church_tax_rate": 0.008
+  },
+  {
+    "name": "Køge",
+    "municipality_code": "0259",
+    "municipal_tax_rate": 0.2526,
+    "church_tax_rate": 0.0087
+  },
+  {
+    "name": "Langeland",
+    "municipality_code": "0482",
+    "municipal_tax_rate": 0.263,
+    "church_tax_rate": 0.0114
+  },
+  {
+    "name": "Lejre",
+    "municipality_code": "0350",
+    "municipal_tax_rate": 0.2531,
+    "church_tax_rate": 0.0105
+  },
+  {
+    "name": "Lemvig",
+    "municipality_code": "0665",
+    "municipal_tax_rate": 0.257,
+    "church_tax_rate": 0.0127
+  },
+  {
+    "name": "Lolland",
+    "municipality_code": "0360",
+    "municipal_tax_rate": 0.263,
+    "church_tax_rate": 0.0123
+  },
+  {
+    "name": "Lyngby-Taarbæk",
+    "municipality_code": "0173",
+    "municipal_tax_rate": 0.2438,
+    "church_tax_rate": 0.006
+  },
+  {
+    "name": "Læsø",
+    "municipality_code": "0825",
+    "municipal_tax_rate": 0.263,
+    "church_tax_rate": 0.013
+  },
+  {
+    "name": "Mariagerfjord",
+    "municipality_code": "0846",
+    "municipal_tax_rate": 0.259,
+    "church_tax_rate": 0.0115
+  },
+  {
+    "name": "Middelfart",
+    "municipality_code": "0410",
+    "municipal_tax_rate": 0.258,
+    "church_tax_rate": 0.009
+  },
+  {
+    "name": "Morsø",
+    "municipality_code": "0773",
+    "municipal_tax_rate": 0.258,
+    "church_tax_rate": 0.012
+  },
+  {
+    "name": "Norddjurs",
+    "municipality_code": "0707",
+    "municipal_tax_rate": 0.26,
+    "church_tax_rate": 0.01
+  },
+  {
+    "name": "Nordfyns",
+    "municipality_code": "0480",
+    "municipal_tax_rate": 0.26,
+    "church_tax_rate": 0.0104
+  },
+  {
+    "name": "Nyborg",
+    "municipality_code": "0450",
+    "municipal_tax_rate": 0.263,
+    "church_tax_rate": 0.01
+  },
+  {
+    "name": "Næstved",
+    "municipality_code": "0370",
+    "municipal_tax_rate": 0.25,
+    "church_tax_rate": 0.0098
+  },
+  {
+    "name": "Odder",
+    "municipality_code": "0727",
+    "municipal_tax_rate": 0.251,
+    "church_tax_rate": 0.0095
+  },
+  {
+    "name": "Odense",
+    "municipality_code": "0461",
+    "municipal_tax_rate": 0.253,
+    "church_tax_rate": 0.0068
+  },
+  {
+    "name": "Odsherred",
+    "municipality_code": "0306",
+    "municipal_tax_rate": 0.263,
+    "church_tax_rate": 0.0098
+  },
+  {
+    "name": "Randers",
+    "municipality_code": "0730",
+    "municipal_tax_rate": 0.26,
+    "church_tax_rate": 0.0089
+  },
+  {
+    "name": "Rebild",
+    "municipality_code": "0840",
+    "municipal_tax_rate": 0.2583,
+    "church_tax_rate": 0.012
+  },
+  {
+    "name": "Ringkøbing-Skjern",
+    "municipality_code": "0760",
+    "municipal_tax_rate": 0.25,
+    "church_tax_rate": 0.0105
+  },
+  {
+    "name": "Ringsted",
+    "municipality_code": "0329",
+    "municipal_tax_rate": 0.261,
+    "church_tax_rate": 0.0095
+  },
+  {
+    "name": "Roskilde",
+    "municipality_code": "0265",
+    "municipal_tax_rate": 0.252,
+    "church_tax_rate": 0.0084
+  },
+  {
+    "name": "Rudersdal",
+    "municipality_code": "0230",
+    "municipal_tax_rate": 0.2347,
+    "church_tax_rate": 0.0057
+  },
+  {
+    "name": "Rødovre",
+    "municipality_code": "0175",
+    "municipal_tax_rate": 0.257,
+    "church_tax_rate": 0.0072
+  },
+  {
+    "name": "Samsø",
+    "municipality_code": "0741",
+    "municipal_tax_rate": 0.259,
+    "church_tax_rate": 0.012
+  },
+  {
+    "name": "Silkeborg",
+    "municipality_code": "0740",
+    "municipal_tax_rate": 0.255,
+    "church_tax_rate": 0.0094
+  },
+  {
+    "name": "Skanderborg",
+    "municipality_code": "0746",
+    "municipal_tax_rate": 0.26,
+    "church_tax_rate": 0.0086
+  },
+  {
+    "name": "Skive",
+    "municipality_code": "0779",
+    "municipal_tax_rate": 0.255,
+    "church_tax_rate": 0.0109
+  },
+  {
+    "name": "Slagelse",
+    "municipality_code": "0330",
+    "municipal_tax_rate": 0.261,
+    "church_tax_rate": 0.0096
+  },
+  {
+    "name": "Solrød",
+    "municipality_code": "0269",
+    "municipal_tax_rate": 0.2499,
+    "church_tax_rate": 0.0084
+  },
+  {
+    "name": "Sorø",
+    "municipality_code": "0340",
+    "municipal_tax_rate": 0.263,
+    "church_tax_rate": 0.0095
+  },
+  {
+    "name": "Stevns",
+    "municipality_code": "0336",
+    "municipal_tax_rate": 0.26,
+    "church_tax_rate": 0.011
+  },
+  {
+    "name": "Struer",
+    "municipality_code": "0671",
+    "municipal_tax_rate": 0.253,
+    "church_tax_rate": 0.012
+  },
+  {
+    "name": "Svendborg",
+    "municipality_code": "0479",
+    "municipal_tax_rate": 0.263,
+    "church_tax_rate": 0.0102
+  },
+  {
+    "name": "Syddjurs",
+    "municipality_code": "0706",
+    "municipal_tax_rate": 0.259,
+    "church_tax_rate": 0.0098
+  },
+  {
+    "name": "Sønderborg",
+    "municipality_code": "0540",
+    "municipal_tax_rate": 0.259,
+    "church_tax_rate": 0.0091
+  },
+  {
+    "name": "Thisted",
+    "municipality_code": "0787",
+    "municipal_tax_rate": 0.255,
+    "church_tax_rate": 0.0127
+  },
+  {
+    "name": "Tårnby",
+    "municipality_code": "0185",
+    "municipal_tax_rate": 0.241,
+    "church_tax_rate": 0.0061
+  },
+  {
+    "name": "Tønder",
+    "municipality_code": "0550",
+    "municipal_tax_rate": 0.253,
+    "church_tax_rate": 0.0116
+  },
+  {
+    "name": "Vallensbæk",
+    "municipality_code": "0187",
+    "municipal_tax_rate": 0.256,
+    "church_tax_rate": 0.008
+  },
+  {
+    "name": "Varde",
+    "municipality_code": "0573",
+    "municipal_tax_rate": 0.251,
+    "church_tax_rate": 0.0095
+  },
+  {
+    "name": "Vejen",
+    "municipality_code": "0575",
+    "municipal_tax_rate": 0.2533,
+    "church_tax_rate": 0.0106
+  },
+  {
+    "name": "Vejle",
+    "municipality_code": "0630",
+    "municipal_tax_rate": 0.234,
+    "church_tax_rate": 0.0089
+  },
+  {
+    "name": "Vesthimmerlands",
+    "municipality_code": "0820",
+    "municipal_tax_rate": 0.263,
+    "church_tax_rate": 0.0118
+  },
+  {
+    "name": "Viborg",
+    "municipality_code": "0791",
+    "municipal_tax_rate": 0.255,
+    "church_tax_rate": 0.0093
+  },
+  {
+    "name": "Vordingborg",
+    "municipality_code": "0390",
+    "municipal_tax_rate": 0.263,
+    "church_tax_rate": 0.0102
+  },
+  {
+    "name": "Ærø",
+    "municipality_code": "0492",
+    "municipal_tax_rate": 0.261,
+    "church_tax_rate": 0.0107
+  }
+]

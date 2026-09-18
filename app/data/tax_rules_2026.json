@@ -1,0 +1,86 @@
+{
+  "tax_year": 2026,
+  "currency": "DKK",
+  "source_document": "docs/research_2026.md",
+  "am_bidrag": {
+    "rate": 0.08,
+    "description": "Arbejdsmarkedsbidrag (labour market contribution). Applied to AM-bidragsgrundlag = gross income minus the employee's ATP contribution.",
+    "source": "https://www.skatteguiden.dk/skattesatser/"
+  },
+  "personal_allowance": {
+    "annual": 54100,
+    "description": "Personfradrag for adults, 2026. Reduces the base for bundskat, kommuneskat and kirkeskat.",
+    "source": "https://xn--lntal-vua.dk/blog/personfradrag-2026"
+  },
+  "state_tax_brackets": {
+    "description": "Applied progressively to personlig indkomst (personal income), which is AM-bidragsgrundlag minus AM-bidrag. Bottom tax base is additionally reduced by the personal allowance. Thresholds are the after-AM-bidrag figures published by skat.dk.",
+    "source": "https://skat.dk/en-us/help/botton-bracket-middle-bracket-top-bracket-and-additional-top-bracket-tax",
+    "bundskat": {
+      "rate": 0.1201,
+      "threshold": 0,
+      "note": "Applies above the personal allowance."
+    },
+    "mellemskat": {
+      "rate": 0.075,
+      "threshold": 641200,
+      "note": "New in the 2026 reform. Applies to personal income above this threshold (also to capital income above DKK 55,000, not modelled in V1)."
+    },
+    "topskat": {
+      "rate": 0.075,
+      "threshold": 777900
+    },
+    "ekstra_topskat": {
+      "rate": 0.05,
+      "threshold": 2592700,
+      "note": "New in the 2026 reform (\"top-topskat\")."
+    }
+  },
+  "skatteloft": {
+    "rate": 0.4457,
+    "note": "Ceiling on combined state personal-income tax rate. Not enforced in V1: bundskat+mellemskat+topskat+ekstra_topskat = 32.01% under the flat 2026 rates, which never reaches this ceiling for ordinary personal income.",
+    "source": "https://www.skatteguiden.dk/skattesatser/"
+  },
+  "employment_allowance": {
+    "rate": 0.1275,
+    "max_annual": 63300,
+    "base": "am_bidragsgrundlag",
+    "description": "Beskæftigelsesfradrag. 12.75% of AM-bidragsgrundlag (wage income before the 8% AM-bidrag is subtracted), capped at DKK 63,300/year. Full amount reached at DKK 496,471 annual income.",
+    "source": "https://skat.dk/en-us/individuals/deductions-and-allowances/deductions-and-allowances-when-working/employment-and-job-allowances"
+  },
+  "job_allowance": {
+    "rate": 0.045,
+    "floor_annual": 235200,
+    "max_annual": 3100,
+    "base": "am_bidragsgrundlag",
+    "description": "Jobfradrag. 4.5% of AM-bidragsgrundlag above DKK 235,200/year, capped at DKK 3,100/year. Full amount reached at DKK 304,089 annual income.",
+    "source": "https://skat.dk/en-us/individuals/deductions-and-allowances/deductions-and-allowances-when-working/employment-and-job-allowances"
+  },
+  "rounding": {
+    "internal": "Decimal, unrounded through the pipeline",
+    "display": "ROUND_HALF_UP to the nearest whole DKK per breakdown line",
+    "note": "See docs/research_2026.md section 12 for full rounding assumptions."
+  },
+  "holiday_pay": {
+    "feriegodtgorelse_rate": 0.125,
+    "feriegodtgorelse_applies_to": "hourly_wage",
+    "ferietillaeg_rate": 0.01,
+    "ferietillaeg_applies_to": "fixed_salary",
+    "atp_applies": false,
+    "description": "Hourly-wage employees (timelønnede) receive feriegodtgørelse at 12.5% of gross wage; salaried employees (funktionærer, fixed_salary mode) instead get paid holiday plus a 1% ferietillæg. Both are AM-bidrag-liable A-indkomst taxed at the employee's current marginal/withholding rate, with no additional ATP. See docs/research_2026.md item 13a.",
+    "sources": [
+      "https://www.dataloen.dk/ordbog/feriegodtgoerelse/",
+      "https://loen.dk/blog/ferietillaeg-2026"
+    ]
+  },
+  "extra_deduction": {
+    "base": "skattepligtig_indkomst",
+    "description": "Optional user-supplied additional ligningsmæssigt fradrag (e.g. union dues, commuting deduction) not otherwise modelled. Reduces skattepligtig indkomst (the municipal/church tax base), the same base the employment and job allowances reduce. Does NOT reduce personlig indkomst or duplicate the automatic personfradrag. See docs/research_2026.md item 13c."
+  },
+  "am_bidrag_age_exemption": {
+    "app_rule": "age <= 17 (current age, as entered by the user) is treated as exempt from AM-bidrag",
+    "verified_rule": "The exemption runs through the income year in which the person turns 17 — i.e. it is a whole-tax-year rule keyed to whether the person turns 18 at any point during the year, not the person's age at the moment of calculation.",
+    "known_limitation": "This app only collects current age (an integer), not date of birth, so it cannot implement the verified whole-year rule exactly. A person who is 17 today but turns 18 later this year is NOT exempt for the full year under the verified rule, but this app's simplified 'age <= 17' check will still mark them exempt. This is a documented, deliberate simplification — not a silent assumption — and is surfaced in both the UI and the result's assumptions list whenever the exemption is applied.",
+    "not_verified": "ATP eligibility by age was not independently verified in V1.2 and is left unchanged (ATP is still charged per the existing hours-based table regardless of age). Employment allowance, job allowance and personfradrag for minors are assumed unchanged; no source was found stating otherwise.",
+    "source": "docs/research_2026.md item 14"
+  }
+}
