@@ -257,7 +257,9 @@ export default function ResultBreakdown({
           : isFrikort
           ? "based on the Frikort balance you supplied"
           : isMonthlyPayslip
-          ? "based on the monthly deduction and tax percentage you supplied"
+          ? result.tax_percentage_estimated
+            ? "based on the monthly deduction you supplied, with the tax percentage estimated from your municipality and the 2026 standard rules"
+            : "based on the monthly deduction and tax percentage you supplied"
           : "a standard estimate"}{" "}
         and does not claim to be exactly what your employer will pay you unless your
         actual SKAT tax-card details were used.
