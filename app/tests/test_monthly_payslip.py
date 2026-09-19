@@ -430,3 +430,46 @@ def test_supplied_traekprocent_reproduces_the_reference_app_exactly():
     assert result.net_income == Decimal("15612")
     # The displayed net must reconcile with the displayed total.
     assert result.gross_income - result.total_tax == result.net_income
+
+
+def test_traekprocent_alone_falls_back_to_the_standard_allowance():
+    """A blank fradrag is not a fradrag of zero. Someone who enters only
+    their trækprocent has not said they have no allowance, so treating it as
+    zero taxed their entire income and overstated the tax by roughly a
+    personfradrag's worth every month (8,356 kr of A-skat instead of 6,643 on
+    this example). The standard personal allowance is assumed instead, and
+    the result says so."""
+    result = calculate_monthly_withholding(
+        SalaryInput(
+            income_type=IncomeType.HOURLY_WAGE,
+            hourly_wage=Decimal("150"),
+            hours=160,
+            minutes=0,
+            municipality_name="København",
+            is_church_member=False,
+            tax_percentage=Decimal("0.38"),
+        )
+    )
+    assert result.calculation_basis.value == "monthly_payslip"
+    assert result.tax_percentage_used == Decimal("0.38")
+    assert result.state_tax_total == Decimal("6643")
+    assert any("fradrag" in a.lower() for a in result.assumptions)
+
+
+def test_an_explicit_zero_fradrag_is_still_respected():
+    """Bikort genuinely has no allowance of its own, so an explicit 0 must
+    not be replaced by the standard personal allowance."""
+    result = calculate_monthly_withholding(
+        SalaryInput(
+            income_type=IncomeType.HOURLY_WAGE,
+            hourly_wage=Decimal("150"),
+            hours=160,
+            minutes=0,
+            municipality_name="København",
+            is_church_member=False,
+            monthly_deduction=Decimal("0"),
+            tax_percentage=Decimal("0.38"),
+        )
+    )
+    assert result.monthly_deduction_applied == Decimal("0")
+    assert result.state_tax_total == Decimal("8356")

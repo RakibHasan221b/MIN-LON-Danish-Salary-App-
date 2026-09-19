@@ -415,9 +415,14 @@ def _monthly_payslip_estimate(
     am_base = am_bidrag.compute_am_bidrag_base(gross_income, atp_contribution)
     am_amount = am_bidrag.compute_am_bidrag(am_base, am_rate, exempt=am_exempt)
 
-    monthly_deduction = salary_input.monthly_deduction or Decimal(0)
-    if period == "annual":
-        monthly_deduction *= MONTHS_PER_YEAR
+    if salary_input.monthly_deduction is not None:
+        monthly_deduction = salary_input.monthly_deduction
+        if period == "annual":
+            monthly_deduction *= MONTHS_PER_YEAR
+        deduction_assumed = False
+    else:
+        monthly_deduction = personal_allowance
+        deduction_assumed = True
 
     tax_percentage_estimated = salary_input.tax_percentage is None
     if salary_input.tax_percentage is not None:
@@ -476,6 +481,12 @@ def _monthly_payslip_estimate(
         "Monthly payslip-style estimate: gross income minus AM-bidrag minus your monthly "
         "deduction (fradrag), taxed at your withholding percentage, minus ATP.",
     ]
+    if deduction_assumed:
+        assumptions.append(
+            "You didn't enter a monthly deduction (fradrag), so the standard personal "
+            "allowance was used. If your payslip shows a different fradrag, enter it for "
+            "an exact figure."
+        )
     if tax_percentage_estimated:
         assumptions.append(
             "You didn't enter a withholding percentage, so it was estimated from standard 2026 "
@@ -704,7 +715,7 @@ def _run(salary_input: SalaryInput, period: str, tax_year: int = 2026) -> TaxRes
             salary_input, base_gross_income, tips, hours_worked, period, tax_rules, tax_year
         )
 
-    if salary_input.monthly_deduction is not None:
+    if salary_input.monthly_deduction is not None or salary_input.tax_percentage is not None:
         return _monthly_payslip_estimate(
             salary_input,
             base_gross_income,

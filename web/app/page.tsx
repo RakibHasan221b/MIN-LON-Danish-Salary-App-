@@ -111,15 +111,12 @@ export default function Home() {
       ...(form.taxCardChoice === "frikort"
         ? { remaining_frikort_amount: parseFloat(form.remainingFrikortAmount) }
         : {}),
-      // A-card: fradrag if entered, otherwise the standard 2026 estimate.
-      // A trækprocent only takes effect on the payslip path, which the
-      // backend dispatches on monthly_deduction being present, so sending a
-      // percentage without a deduction would silently do nothing. When the
-      // user gives a percentage but leaves the fradrag blank, the fradrag is
-      // therefore sent explicitly as 0.
-      ...(form.taxCardChoice === "a" &&
-      (form.monthlyDeduction !== "" || form.taxPercentage !== "")
-        ? { monthly_deduction: parseFloat(form.monthlyDeduction || "0") }
+      // A-card: send the fradrag only if the user actually entered one. A
+      // blank fradrag is not a fradrag of zero, and the backend now falls
+      // back to the standard personal allowance rather than taxing the whole
+      // income, so it must be able to tell blank from zero.
+      ...(form.taxCardChoice === "a" && form.monthlyDeduction !== ""
+        ? { monthly_deduction: parseFloat(form.monthlyDeduction) }
         : {}),
       // B-card (second job): no monthly fradrag of its own.
       ...(form.taxCardChoice === "b" ? { monthly_deduction: 0 } : {}),
