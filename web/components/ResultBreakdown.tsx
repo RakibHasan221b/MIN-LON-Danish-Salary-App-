@@ -1,10 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { CalculateResponse } from "@/lib/api";
 import CurrencySection from "@/components/CurrencySection";
 import HolidayPaySection from "@/components/HolidayPaySection";
 import TotalWithHolidaySection from "@/components/TotalWithHolidaySection";
+
+// A brief, one-shot celebratory burst of emoji when a result appears,
+// matching the Streamlit app's animation. Purely decorative and removes
+// itself from the DOM once it finishes playing.
+const CELEBRATION_EMOJI = ["💰", "🎉", "💸", "✨", "💰", "🎉"];
+
+function Celebration() {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setVisible(false), 2600);
+    return () => clearTimeout(timer);
+  }, []);
+  if (!visible) return null;
+  return (
+    <div className="celebration" aria-hidden="true">
+      {CELEBRATION_EMOJI.map((emoji, i) => (
+        <span
+          key={i}
+          className="celebration-emoji"
+          style={{
+            left: `${8 + i * (84 / CELEBRATION_EMOJI.length)}%`,
+            animationDelay: `${i * 0.12}s`,
+          }}
+        >
+          {emoji}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 function formatDKK(amount: number): string {
   const rounded = Math.round(amount);
@@ -70,24 +100,25 @@ export default function ResultBreakdown({
       </button>
 
       {/* LEVEL 1 — main result */}
+      <Celebration />
       <div className="card">
         <p className="hint" style={{ marginTop: 0, marginBottom: 4 }}>
           {METHOD_LABELS[result.calculation_basis] || result.calculation_basis}
         </p>
-        <h1 style={{ fontSize: "1.15rem", margin: "4px 0 16px" }}>
-          Estimated net salary (this month)
+        <h1 style={{ fontSize: "1.15rem", margin: "4px 0 20px" }}>
+          💰 Estimated net salary (this month)
         </h1>
-        <div className="breakdown-line">
-          <span>Gross</span>
-          <span>{formatDKK(result.gross_income)}</span>
+        <div className="stat-tile">
+          <div className="stat-label">Gross Earned</div>
+          <div className="stat-value stat-blue">{formatDKK(result.gross_income)}</div>
         </div>
-        <div className="breakdown-line">
-          <span>Total tax</span>
-          <span className="amount-negative">-{formatDKK(result.total_tax)}</span>
+        <div className="stat-tile">
+          <div className="stat-label">Total Tax Paid</div>
+          <div className="stat-value stat-red">-{formatDKK(result.total_tax)}</div>
         </div>
-        <div className="breakdown-line total">
-          <span>Estimated net salary</span>
-          <span>{formatDKK(result.net_income)}</span>
+        <div className="stat-tile">
+          <div className="stat-label">Net Earned</div>
+          <div className="stat-value stat-green">{formatDKK(result.net_income)}</div>
         </div>
         {isStandard && (
           <p className="hint" style={{ marginTop: 8 }}>
@@ -115,7 +146,7 @@ export default function ResultBreakdown({
 
       {/* LEVEL 2 — main breakdown */}
       <div className="card">
-        <h2 style={{ fontSize: "1.05rem", marginTop: 0 }}>Breakdown</h2>
+        <h2 style={{ fontSize: "1.05rem", marginTop: 0 }}>🧮 Breakdown</h2>
         {level2Lines.map((line) => (
           <div
             key={line.label}
