@@ -118,34 +118,45 @@ export default function ResultBreakdown({
     "Total tax",
   ]);
 
-  const level2Lines: { label: string; amount: number }[] = isMonthlyPayslip
+  const level2Lines: { label: string; rawLabel: string; amount: number }[] = isMonthlyPayslip
     ? result.breakdown
         .filter((l) => !(l.label === "Monthly fradrag" && l.amount === 0))
-        .map((l) => ({ label: labelWithRate(l.label), amount: l.amount }))
+        .map((l) => ({
+          label: labelWithRate(l.label),
+          rawLabel: l.label,
+          amount: l.amount,
+        }))
     : [
-        { label: "Gross income", amount: result.gross_income },
-        ...(result.tips ? [{ label: "of which tips", amount: result.tips }] : []),
-        { label: "ATP", amount: -result.atp_employee_contribution },
-        { label: amBidragLabel, amount: -result.am_bidrag },
+        { label: "Gross income", rawLabel: "Gross income", amount: result.gross_income },
+        ...(result.tips
+          ? [{ label: "of which tips", rawLabel: "of which tips", amount: result.tips }]
+          : []),
+        { label: "ATP", rawLabel: "ATP", amount: -result.atp_employee_contribution },
+        { label: amBidragLabel, rawLabel: "AM-bidrag", amount: -result.am_bidrag },
         ...(isStandard
           ? [
-              { label: "State tax", amount: -result.state_tax_total },
-              { label: municipalTaxLabel, amount: -result.municipal_tax },
+              { label: "State tax", rawLabel: "State tax", amount: -result.state_tax_total },
+              {
+                label: municipalTaxLabel,
+                rawLabel: "Municipal tax",
+                amount: -result.municipal_tax,
+              },
             ]
           : [
               {
-                label: `${isFrikort ? "Income tax (tax-free)" : "Withheld tax"}${withheldRateLabel}`,
+                label: `${isFrikort ? "Income tax (tax-free)" : "A-skat"}${withheldRateLabel}`,
+                rawLabel: "Withheld tax",
                 amount: -result.state_tax_total,
               },
             ]),
         ...(result.is_church_member && result.church_tax
-          ? [{ label: churchTaxLabel, amount: -result.church_tax }]
+          ? [{ label: churchTaxLabel, rawLabel: "Church tax", amount: -result.church_tax }]
           : []),
-        { label: "Total tax", amount: -result.total_tax },
-        { label: "Net income", amount: result.net_income },
+        { label: "Total tax", rawLabel: "Total tax", amount: -result.total_tax },
+        { label: "Net income", rawLabel: "Net income", amount: result.net_income },
       ];
 
-  const bulletLines = level2Lines.filter((line) => !STAT_TILE_LABELS.has(line.label));
+  const bulletLines = level2Lines.filter((line) => !STAT_TILE_LABELS.has(line.rawLabel));
 
   // The reference app lays ATP / AM-bidrag / its income-tax line out in
   // three columns (st.columns(3)), then anything else (its "Other Tax"
@@ -153,15 +164,19 @@ export default function ResultBreakdown({
   // the old flat model did (fradrag, municipal tax, church tax, ...),
   // so the same three "primary" slots go in the 3-column row and
   // whatever's left goes below, stacked, the same way "Other Tax" did.
-  const incomeTaxLine = bulletLines.find((l) => /^(A-tax|withheld tax|State tax|Income tax)/i.test(l.label));
-  const primaryLabels = new Set(
-    ["ATP", amBidragLabel, incomeTaxLine?.label].filter((l): l is string => l != null)
+  const incomeTaxLine = bulletLines.find((l) =>
+    /^(A-tax|withheld tax|State tax|Income tax)/i.test(l.rawLabel)
   );
-  const primaryLines = ["ATP", amBidragLabel, incomeTaxLine?.label]
+  const primaryRawLabels = new Set(
+    ["ATP", "AM-bidrag", incomeTaxLine?.rawLabel].filter((l): l is string => l != null)
+  );
+  const primaryLines = ["ATP", "AM-bidrag", incomeTaxLine?.rawLabel]
     .filter((l): l is string => l != null)
-    .map((label) => bulletLines.find((l) => l.label === label))
-    .filter((l): l is { label: string; amount: number } => l != null);
-  const secondaryLines = bulletLines.filter((line) => !primaryLabels.has(line.label));
+    .map((raw) => bulletLines.find((l) => l.rawLabel === raw))
+    .filter((l): l is (typeof bulletLines)[number] => l != null);
+  const secondaryLines = bulletLines.filter(
+    (line) => !primaryRawLabels.has(line.rawLabel)
+  );
 
   return (
     <div>
