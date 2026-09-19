@@ -342,7 +342,12 @@ export default function ResultBreakdown({
         </div>
       </details>
 
-      <div className="disclaimer">Estimate based on 2026 Danish tax rules, not an official payslip.</div>
+      <div className="disclaimer">
+        Estimated from your municipality and the 2026 rules. Your own tax card can
+        differ, because SKAT sets your tax percentage from the income it expects you
+        to earn across the whole year, and from deductions like commuting or union
+        dues that this app does not ask about.
+      </div>
     </div>
   );
 }

@@ -325,14 +325,14 @@ export default function Home() {
                 className={`toggle-btn ${form.taxCardChoice === "a" ? "active" : ""}`}
                 onClick={() => update("taxCardChoice", "a")}
               >
-                Hovedkort / Main job
+                A-card / Main job
               </button>
               <button
                 type="button"
                 className={`toggle-btn ${form.taxCardChoice === "b" ? "active" : ""}`}
                 onClick={() => update("taxCardChoice", "b")}
               >
-                Bikort / Second job
+                B-card / Second job
               </button>
               <button
                 type="button"
@@ -343,10 +343,11 @@ export default function Home() {
               </button>
             </div>
             <p className="hint">
-              Hovedkort is your main job, and most people have this one. Bikort is for a
-              second job you hold at the same time, and it carries no tax-free allowance
-              of its own. Frikort is the tax-free card you get while your yearly income
-              stays under the tax-free allowance.
+              The A-card is your main job, and most people have this one. The B-card is for
+              a second job you hold at the same time, and it carries no tax-free
+              allowance of its own. Frikort is the tax-free card you get while your
+              yearly income stays under the tax-free allowance. On skat.dk these are
+              called hovedkort, bikort and frikort.
             </p>
           </div>
 

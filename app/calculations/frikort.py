@@ -54,7 +54,7 @@ def compute_frikort_withholding(
         raise FrikortBalanceExceededError(
             "This income is more than your remaining Frikort amount "
             f"(DKK {remaining_frikort_amount:,.0f}). We can't correctly estimate the tax on "
-            "the part above your balance. Switch to Bikort / Second job above, or lower the "
+            "the part above your balance. Switch to the B-card / Second job option above, or lower the "
             "income so it fits inside your remaining Frikort balance."
         )
     withholding_base = gross_income - atp_employee_contribution - am_bidrag
