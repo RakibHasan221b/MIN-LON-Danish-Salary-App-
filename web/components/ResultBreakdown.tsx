@@ -41,6 +41,19 @@ function formatDKK(amount: number): string {
   return new Intl.NumberFormat("da-DK").format(rounded) + " kr.";
 }
 
+function formatDKKStat(amount: number): string {
+  return (
+    new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount) + " DKK"
+  );
+}
+
+function formatDKKLine(amount: number): string {
+  return new Intl.NumberFormat("en-US").format(Math.round(amount)) + " DKK";
+}
+
 const METHOD_LABELS: Record<string, string> = {
   standard_estimate: "Standard estimate (2026 rules)",
   tax_card: "Your tax card figures",
@@ -93,6 +106,18 @@ export default function ResultBreakdown({
     return label;
   }
 
+  // Lines already shown as the three big stat tiles (Gross/Total tax/Net)
+  // are not repeated in the dash-bullet list below them, matching the
+  // reference app: the tiles cover the totals, the bullets cover only the
+  // components that make them up (ATP, AM-bidrag, fradrag, tax, etc).
+  const STAT_TILE_LABELS = new Set([
+    "Gross income",
+    "Gross salary",
+    "Net income",
+    "Estimated net salary",
+    "Total tax",
+  ]);
+
   const level2Lines: { label: string; amount: number }[] = isMonthlyPayslip
     ? result.breakdown
         .filter((l) => !(l.label === "Monthly fradrag" && l.amount === 0))
@@ -120,29 +145,32 @@ export default function ResultBreakdown({
         { label: "Net income", amount: result.net_income },
       ];
 
+  const bulletLines = level2Lines.filter((line) => !STAT_TILE_LABELS.has(line.label));
+
   return (
     <div>
-      {/* LEVEL 1 — main result */}
+      {/* Salary Breakdown — one card: the three stat tiles, then a plain
+          dash-bulleted list of the components (ATP, AM-bidrag, fradrag,
+          tax), matching the reference app's own "Salary Breakdown"
+          block instead of splitting it across two differently-styled
+          cards. */}
       <Celebration />
       <div className="card">
-        <p className="hint" style={{ marginTop: 0, marginBottom: 4 }}>
-          {METHOD_LABELS[result.calculation_basis] || result.calculation_basis}
-        </p>
         <h1 style={{ fontSize: "1.15rem", margin: "4px 0 20px" }}>
-          💰 Estimated net salary (this month)
+          💰 Salary Breakdown (in DKK)
         </h1>
         <div className="stat-grid">
           <div className="stat-tile">
             <div className="stat-label">Gross Earned</div>
-            <div className="stat-value stat-blue">{formatDKK(result.gross_income)}</div>
+            <div className="stat-value stat-blue">{formatDKKStat(result.gross_income)}</div>
           </div>
           <div className="stat-tile">
             <div className="stat-label">Total Tax Paid</div>
-            <div className="stat-value stat-red">-{formatDKK(result.total_tax)}</div>
+            <div className="stat-value stat-red">{formatDKKStat(result.total_tax)}</div>
           </div>
           <div className="stat-tile">
             <div className="stat-label">Net Earned</div>
-            <div className="stat-value stat-green">{formatDKK(result.net_income)}</div>
+            <div className="stat-value stat-green">{formatDKKStat(result.net_income)}</div>
           </div>
         </div>
         {isStandard && (
@@ -156,35 +184,14 @@ export default function ResultBreakdown({
             No AM-bidrag was applied, based on the age you entered.
           </p>
         )}
-      </div>
-
-      {/* LEVEL 2 — main breakdown */}
-      <div className="card">
-        <h2 style={{ fontSize: "1.05rem", marginTop: 0 }}>🧮 Breakdown</h2>
-        {level2Lines.map((line) => (
-          <div
-            key={line.label}
-            className={`breakdown-line ${
-              line.label === "Net income" || line.label === "Estimated net salary" ? "total" : ""
-            }`}
-          >
-            <span>{line.label}</span>
-            <span
-              className={
-                line.amount < 0
-                  ? "amount-negative"
-                  : ["Net income", "Gross income", "Gross salary", "Estimated net salary", "Taxable after fradrag"].includes(
-                      line.label
-                    )
-                  ? undefined
-                  : "amount-positive"
-              }
-            >
-              {line.amount < 0 ? "-" : ""}
-              {formatDKK(Math.abs(line.amount))}
-            </span>
-          </div>
-        ))}
+        <div style={{ marginTop: 16 }}>
+          {bulletLines.map((line) => (
+            <div key={line.label} className="breakdown-dash-line">
+              – {line.label}: {line.amount < 0 ? "-" : ""}
+              {formatDKKLine(Math.abs(line.amount))} DKK
+            </div>
+          ))}
+        </div>
         <div className="effective-rate">
           Effective tax rate: <strong>{(result.effective_tax_rate * 100).toFixed(1)}%</strong>
         </div>

@@ -218,6 +218,15 @@ select:focus {
   padding-top: 14px;
 }
 
+/* Plain dash-bulleted breakdown list, matching the reference app's
+   "- ATP: 0 DKK" / "- AM-bidrag (8%): 84 DKK" style directly under the
+   stat tiles, instead of the boxed label/amount rows used elsewhere. */
+.breakdown-dash-line {
+  padding: 3px 0;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
 .amount-positive {
   color: var(--positive);
 }
