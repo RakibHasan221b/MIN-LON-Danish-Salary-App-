@@ -152,6 +152,6 @@ class SalaryInput:
             self.monthly_deduction is not None or self.tax_percentage is not None
         ):
             raise ValueError(
-                "Monthly deduction and tax percentage are part of the simple monthly flow, "
-                "they can't be combined with 'Use my tax card' (Hovedkort/Bikort/Frikort)."
+                "Choose one: either let us estimate your tax from your municipality, or "
+                "enter your own tax card figures. They can't be combined."
             )

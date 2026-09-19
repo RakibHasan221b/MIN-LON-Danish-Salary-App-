@@ -134,8 +134,60 @@ def test_case2_estimates_percentage_from_standard_rules():
 
     assert result.calculation_basis.value == "monthly_payslip"
     assert result.tax_percentage_estimated is True
-    assert result.tax_percentage_used == standard_result.effective_tax_rate
     assert any("estimated" in a.lower() for a in result.assumptions)
+
+    # This deliberately does NOT assert equality with effective_tax_rate.
+    # It used to, and that encoded a real bug: effective_tax_rate is total
+    # tax (AM-bidrag and ATP included) over GROSS, but a trækprocent is
+    # charged on income after AM-bidrag and after fradrag. Deriving a rate
+    # on one base and applying it to a smaller one made the two flows
+    # disagree for the same person and understated the tax.
+    # A larger-than-standard fradrag must mean strictly less tax than the
+    # standard estimate, never more.
+    assert result.total_tax < standard_result.total_tax
+
+
+def test_estimated_percentage_reproduces_the_standard_estimate_exactly():
+    """The invariant the estimated trækprocent has to satisfy: a user whose
+    monthly fradrag is just the standard personfradrag (54,100/12) must get
+    the same answer as someone who left the fradrag blank. Before the
+    derivation was fixed these two disagreed by over 100 kr/month for the
+    same person."""
+    common = dict(
+        income_type=IncomeType.FIXED_SALARY,
+        fixed_monthly_salary=Decimal("26850"),
+        municipality_name="København",
+        is_church_member=False,
+    )
+    standard = calculate_monthly_withholding(SalaryInput(**common))
+    standard_personfradrag = Decimal("54100") / 12
+    payslip = calculate_monthly_withholding(
+        SalaryInput(**common, monthly_deduction=standard_personfradrag)
+    )
+
+    assert payslip.total_tax == standard.total_tax
+    assert payslip.net_income == standard.net_income
+
+
+def test_estimated_percentage_is_zero_when_income_is_below_the_allowance():
+    """A short shift earns less than the monthly personfradrag, so no income
+    tax is due and the estimated rate must be 0%. It previously came out as
+    8%, which is the AM-bidrag rate leaking into the A-skat line and being
+    shown to the user as their tax percentage."""
+    result = calculate_monthly_withholding(
+        SalaryInput(
+            income_type=IncomeType.HOURLY_WAGE,
+            hourly_wage=Decimal("150"),
+            hours=7,
+            minutes=0,
+            municipality_name="København",
+            is_church_member=False,
+            monthly_deduction=Decimal("5207"),
+        )
+    )
+    assert result.tax_percentage_used == Decimal(0)
+    assert result.state_tax_total == Decimal(0)
+    assert result.net_income == Decimal("966")
 
 
 # ---------------------------------------------------------------------
@@ -161,7 +213,7 @@ def test_case3_falls_through_to_standard_estimate_unchanged():
 
 
 def test_monthly_deduction_cannot_combine_with_tax_card_mode():
-    with pytest.raises(ValueError, match="simple monthly flow"):
+    with pytest.raises(ValueError, match="can't be combined"):
         SalaryInput(
             income_type=IncomeType.FIXED_SALARY,
             fixed_monthly_salary=Decimal("30000"),
@@ -275,7 +327,7 @@ def test_api_rejects_monthly_deduction_combined_with_tax_card_mode():
         },
     )
     assert resp.status_code == 422
-    assert "simple monthly flow" in resp.json()["detail"][0]["msg"]
+    assert "can't be combined" in resp.json()["detail"][0]["msg"]
 
 
 # ---------------------------------------------------------------------

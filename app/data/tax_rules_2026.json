@@ -36,9 +36,12 @@
     }
   },
   "skatteloft": {
-    "rate": 0.4457,
-    "note": "Ceiling on combined state personal-income tax rate. Not enforced in V1: bundskat+mellemskat+topskat+ekstra_topskat = 32.01% under the flat 2026 rates, which never reaches this ceiling for ordinary personal income.",
-    "source": "https://www.skatteguiden.dk/skattesatser/"
+    "description": "Skatteloft (PSL 19): ceiling on the combined rate of state personal-income tax plus municipal tax. Post-reform the ceiling is tiered by band. Church tax and AM-bidrag are outside the ceiling.",
+    "mellemskat_band_rate": 0.4457,
+    "topskat_band_rate": 0.5207,
+    "ekstra_topskat_band_rate": 0.5707,
+    "note": "An earlier version stored only 0.4457 and did not enforce it, on the reasoning that the state rates alone (12.01+7.5+7.5+5 = 32.01%) never reach it. That reasoning was wrong: the ceiling covers municipal tax too. With municipal rates from 23.39% to 26.30%, the ceiling binds for every taxpayer above the mellemskat threshold in any municipality above roughly 25.06%, which is 75 of the 98 municipalities.",
+    "source": "https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/personskatteloven"
   },
   "employment_allowance": {
     "rate": 0.1275,

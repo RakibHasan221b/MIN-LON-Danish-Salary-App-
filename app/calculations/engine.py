@@ -80,6 +80,8 @@ def _scaled_tax_rules(tax_rules: dict, period: str) -> dict:
             "max_annual": Decimal(str(tax_rules["job_allowance"]["max_annual"])) / divisor,
         },
         "holiday_pay": tax_rules["holiday_pay"],
+        # Rates, not amounts, so they are period-independent.
+        "skatteloft": tax_rules["skatteloft"],
     }
     return scaled
 
@@ -143,16 +145,20 @@ def _standard_estimate(
         Decimal(str(rules["job_allowance"]["max_annual"])),
     )
 
+    municipal_rate = Decimal(str(municipality["municipal_tax_rate"]))
+    church_rate = Decimal(str(municipality["church_tax_rate"]))
+
     state_tax = tax.compute_state_tax(
-        personlig_indkomst, personal_allowance, rules["state_tax_brackets"]
+        personlig_indkomst,
+        personal_allowance,
+        rules["state_tax_brackets"],
+        municipal_rate=municipal_rate,
+        skatteloft=rules["skatteloft"],
     )
 
     skattepligtig_indkomst = municipal_tax.compute_skattepligtig_indkomst(
         personlig_indkomst, employment_allowance_amount, job_allowance_amount
     ) - extra_deduction
-
-    municipal_rate = Decimal(str(municipality["municipal_tax_rate"]))
-    church_rate = Decimal(str(municipality["church_tax_rate"]))
 
     municipal_amount = municipal_tax.compute_municipal_tax(
         skattepligtig_indkomst, personal_allowance, municipal_rate
@@ -182,14 +188,14 @@ def _standard_estimate(
         )
     if extra_deduction:
         assumptions.append(
-            "The additional deduction you entered reduces skattepligtig indkomst (municipal/church tax "
-            "base), the same base the employment and job allowances reduce — see docs/research_2026.md item 13c."
+            "The extra deduction you entered reduces the income your municipal and church "
+            "tax are calculated from, the same income the employment and job allowances reduce."
         )
     if am_exempt:
         assumptions.append(
-            "AM-bidrag (8%) was not applied because you entered an age of 17 or under. This uses a "
-            "simplified age check (age today, not date of birth) — see docs/research_2026.md item 14 "
-            "for the exact 2026 rule and its limitation."
+            "AM-bidrag (8%) was not applied because you told us you are 17 or under. "
+            "We go by your age today rather than your date of birth, so this can be wrong "
+            "if you turn 18 later this year."
         )
 
     holiday = compute_holiday_pay(
@@ -294,8 +300,8 @@ def _tax_card_estimate(
     zero = Decimal(0)
     assumptions = [
         "Withholding estimated from the tax-card percentage and deduction you provided.",
-        "This reflects your supplied tax card figures, not a recalculation of them — "
-        "confirm those figures against your own forskudsopgørelse/skattekort.",
+        "This uses the tax card figures you supplied rather than recalculating them, so "
+        "check them against your own skattekort.",
     ]
     if tips:
         assumptions.append(
@@ -303,9 +309,9 @@ def _tax_card_estimate(
         )
     if am_exempt:
         assumptions.append(
-            "AM-bidrag (8%) was not applied because you entered an age of 17 or under. This uses a "
-            "simplified age check (age today, not date of birth) — see docs/research_2026.md item 14 "
-            "for the exact 2026 rule and its limitation."
+            "AM-bidrag (8%) was not applied because you told us you are 17 or under. "
+            "We go by your age today rather than your date of birth, so this can be wrong "
+            "if you turn 18 later this year."
         )
 
     holiday = compute_holiday_pay(
@@ -388,6 +394,7 @@ def _monthly_payslip_estimate(
     """
     rules = _scaled_tax_rules(tax_rules, period)
     am_rate = Decimal(str(rules["am_bidrag"]["rate"]))
+    personal_allowance = Decimal(str(rules["personal_allowance"]["annual"]))
     am_exempt = am_bidrag.is_exempt_by_age(salary_input.age)
 
     gross_income = base_gross_income + tips
@@ -430,7 +437,28 @@ def _monthly_payslip_estimate(
             TaxCardMode.STANDARD_ESTIMATE,
             salary_input.age,
         )
-        tax_percentage = standard.effective_tax_rate
+        # A trækprocent is income tax divided by the income it is charged
+        # on, and on a payslip that base is income after AM-bidrag and
+        # after fradrag. So the rate has to be derived against that same
+        # kind of base.
+        #
+        # This previously used standard.effective_tax_rate, which is total
+        # tax (including AM-bidrag and ATP) divided by GROSS. Deriving a
+        # rate on one base and applying it to a different, smaller one made
+        # the two flows disagree for the same person: entering your fradrag
+        # produced a different answer from leaving it blank, and understated
+        # the tax either way.
+        #
+        # Deriving it against the standard personfradrag means a user whose
+        # fradrag equals the standard one reproduces the standard estimate
+        # exactly, and a user with a larger fradrag correctly pays less.
+        income_tax = (
+            standard.state_tax_total + standard.municipal_tax + standard.church_tax
+        )
+        standard_base = standard.taxable_income - personal_allowance
+        tax_percentage = (
+            (income_tax / standard_base) if standard_base > 0 else Decimal(0)
+        )
 
     payslip = compute_payslip_withholding(
         gross_income=gross_income,
@@ -461,9 +489,9 @@ def _monthly_payslip_estimate(
         )
     if am_exempt:
         assumptions.append(
-            "AM-bidrag (8%) was not applied because you entered an age of 17 or under. This uses a "
-            "simplified age check (age today, not date of birth), see docs/research_2026.md item 14 "
-            "for the exact 2026 rule and its limitation."
+            "AM-bidrag (8%) was not applied because you told us you are 17 or under. "
+            "We go by your age today rather than your date of birth, so this can be wrong "
+            "if you turn 18 later this year."
         )
 
     holiday = compute_holiday_pay(
@@ -580,8 +608,8 @@ def _frikort_estimate(
     assumptions = [
         "Frikort: this income is within your stated remaining Frikort balance, so no state, "
         "municipal or church income tax is withheld on it. AM-bidrag and ATP still apply as normal.",
-        "This is the well-verified Frikort case only — if this income exceeded your remaining "
-        "balance, the app would stop and ask you to use Bikort instead, rather than guessing.",
+        "Your income fits inside your remaining Frikort balance. If it went over, we would "
+        "tell you rather than guess at the tax on the part above the balance.",
     ]
     if tips:
         assumptions.append(
@@ -589,9 +617,9 @@ def _frikort_estimate(
         )
     if am_exempt:
         assumptions.append(
-            "AM-bidrag (8%) was not applied because you entered an age of 17 or under. This uses a "
-            "simplified age check (age today, not date of birth) — see docs/research_2026.md item 14 "
-            "for the exact 2026 rule and its limitation."
+            "AM-bidrag (8%) was not applied because you told us you are 17 or under. "
+            "We go by your age today rather than your date of birth, so this can be wrong "
+            "if you turn 18 later this year."
         )
 
     holiday = compute_holiday_pay(
