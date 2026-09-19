@@ -343,10 +343,11 @@ export default function ResultBreakdown({
       </details>
 
       <div className="disclaimer">
-        Estimated from your municipality and the 2026 rules. Your own tax card can
-        differ, because SKAT sets your tax percentage from the income it expects you
-        to earn across the whole year, and from deductions like commuting or union
-        dues that this app does not ask about.
+        Estimated from your municipality and the 2026 rules. If you entered your
+        monthly fradrag, deductions you have already registered with SKAT, such as
+        commuting, are inside that number and are counted. What we estimate is your
+        tax percentage, which SKAT sets from the income it expects you to earn across
+        the whole year, so your real payslip can still differ.
       </div>
     </div>
   );
