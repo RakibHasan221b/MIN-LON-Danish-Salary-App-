@@ -108,17 +108,19 @@ export default function ResultBreakdown({
         <h1 style={{ fontSize: "1.15rem", margin: "4px 0 20px" }}>
           💰 Estimated net salary (this month)
         </h1>
-        <div className="stat-tile">
-          <div className="stat-label">Gross Earned</div>
-          <div className="stat-value stat-blue">{formatDKK(result.gross_income)}</div>
-        </div>
-        <div className="stat-tile">
-          <div className="stat-label">Total Tax Paid</div>
-          <div className="stat-value stat-red">-{formatDKK(result.total_tax)}</div>
-        </div>
-        <div className="stat-tile">
-          <div className="stat-label">Net Earned</div>
-          <div className="stat-value stat-green">{formatDKK(result.net_income)}</div>
+        <div className="stat-grid">
+          <div className="stat-tile">
+            <div className="stat-label">Gross Earned</div>
+            <div className="stat-value stat-blue">{formatDKK(result.gross_income)}</div>
+          </div>
+          <div className="stat-tile">
+            <div className="stat-label">Total Tax Paid</div>
+            <div className="stat-value stat-red">-{formatDKK(result.total_tax)}</div>
+          </div>
+          <div className="stat-tile">
+            <div className="stat-label">Net Earned</div>
+            <div className="stat-value stat-green">{formatDKK(result.net_income)}</div>
+          </div>
         </div>
         {isStandard && (
           <p className="hint" style={{ marginTop: 8 }}>

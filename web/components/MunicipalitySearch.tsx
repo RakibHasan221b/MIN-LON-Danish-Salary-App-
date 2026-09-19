@@ -27,7 +27,7 @@ export default function MunicipalitySearch({
   return (
     <div className="field">
       <label className="field-label" htmlFor="municipality-search">
-        Municipality
+        Select your municipality
       </label>
       <input
         id="municipality-search"

@@ -10,17 +10,19 @@ export default function TotalWithHolidaySection({ total }: { total: TotalWithHol
   return (
     <div className="card">
       <h2 style={{ fontSize: "1.05rem", marginTop: 0 }}>🧾 Total Including Holiday Pay</h2>
-      <div className="breakdown-line">
-        <span>Gross + Holiday</span>
-        <span>{formatDKK(total.gross)}</span>
-      </div>
-      <div className="breakdown-line">
-        <span>Total Tax Paid</span>
-        <span className="amount-negative">-{formatDKK(total.tax)}</span>
-      </div>
-      <div className="breakdown-line total">
-        <span>Net + Holiday</span>
-        <span>{formatDKK(total.net)}</span>
+      <div className="stat-grid">
+        <div className="stat-tile">
+          <div className="stat-label">Gross + Holiday</div>
+          <div className="stat-value stat-blue-alt">{formatDKK(total.gross)}</div>
+        </div>
+        <div className="stat-tile">
+          <div className="stat-label">Total Tax Paid</div>
+          <div className="stat-value stat-red-alt">-{formatDKK(total.tax)}</div>
+        </div>
+        <div className="stat-tile">
+          <div className="stat-label">Net + Holiday</div>
+          <div className="stat-value stat-green-alt">{formatDKK(total.net)}</div>
+        </div>
       </div>
     </div>
   );

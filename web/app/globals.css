@@ -5,11 +5,22 @@
   --text: #fafafa;
   --text-muted: #9aa1b1;
   --border: #2d3341;
-  --accent: #2f8fef;
-  --accent-hover: #4a9ff5;
+  --accent: #1e90ff;
+  --accent-hover: #4aa3ff;
   --positive: #3ddc84;
   --negative: #ff6b6b;
   --radius: 12px;
+
+  /* Exact colors from the user's Streamlit app's colored_text() calls,
+     for the stat-tile numbers specifically (slightly different shades
+     than --accent/--positive/--negative, which stay for buttons and
+     ordinary +/- amounts elsewhere). */
+  --stat-blue: #2e86c1;
+  --stat-red: #c0392b;
+  --stat-green: #27ae60;
+  --stat-blue-alt: #1f618d;
+  --stat-red-alt: #a93226;
+  --stat-green-alt: #239b56;
 }
 
 * {
@@ -27,17 +38,22 @@ body {
 }
 
 main {
-  max-width: 560px;
+  max-width: 760px;
   margin: 0 auto;
-  padding: 24px 16px 64px;
+  padding: 24px 16px 80px;
 }
 
 h1 {
-  font-size: 1.8rem;
+  font-size: 2.1rem;
   font-weight: 700;
   color: var(--accent);
   margin: 8px 0 2px;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.2em;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.page-title {
+  text-align: center;
 }
 
 .subtitle {
@@ -133,12 +149,12 @@ select:focus {
 
 .calculate-btn {
   width: 100%;
-  padding: 16px;
-  border-radius: 12px;
+  padding: 14px 25px;
+  border-radius: 8px;
   border: none;
   background: var(--accent);
   color: white;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 700;
   cursor: pointer;
   margin-top: 8px;
@@ -262,39 +278,61 @@ select:focus {
 
 
 /* Big colored stat tiles for the main result, matching the Streamlit
-   app's st.metric-style layout: a small muted label above a large bold
-   colored number, instead of a thin breakdown row. */
-.stat-tile {
-  margin-bottom: 20px;
+   app's st.columns(3) + colored_text() layout: three numbers side by
+   side on wider screens (a real column layout, not a single narrow
+   stack), falling back to a stack only when the screen is too narrow
+   to fit three columns comfortably. */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
 }
 
-.stat-tile:last-child {
+@media (max-width: 480px) {
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat-tile {
   margin-bottom: 0;
 }
 
 .stat-label {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   margin-bottom: 2px;
 }
 
 .stat-value {
-  font-size: 2.1rem;
+  font-size: 1.6rem;
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.01em;
 }
 
 .stat-value.stat-blue {
-  color: var(--accent);
+  color: var(--stat-blue);
 }
 
 .stat-value.stat-red {
-  color: var(--negative);
+  color: var(--stat-red);
 }
 
 .stat-value.stat-green {
-  color: var(--positive);
+  color: var(--stat-green);
+}
+
+.stat-value.stat-blue-alt {
+  color: var(--stat-blue-alt);
+}
+
+.stat-value.stat-red-alt {
+  color: var(--stat-red-alt);
+}
+
+.stat-value.stat-green-alt {
+  color: var(--stat-green-alt);
 }
 
 /* One-shot celebratory animation shown briefly when a result appears,
@@ -335,4 +373,18 @@ select:focus {
   .celebration {
     display: none;
   }
+}
+
+/* Footer, matching the user's Streamlit app: small, gray, fixed to the
+   bottom-left corner, always visible while scrolling. main's bottom
+   padding (see above) keeps the last card clear of it. */
+.site-footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  padding: 10px 20px;
+  font-size: 14px;
+  color: var(--text-muted);
+  z-index: 40;
+  pointer-events: none;
 }

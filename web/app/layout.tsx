@@ -21,7 +21,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <div className="site-footer">© Rakib Hasan 2025</div>
+      </body>
     </html>
   );
 }
