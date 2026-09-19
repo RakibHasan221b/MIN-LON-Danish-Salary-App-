@@ -28,7 +28,7 @@ def test_frikort_within_balance_is_tax_free():
 
 
 def test_frikort_exceeding_balance_raises_clear_error():
-    with pytest.raises(FrikortBalanceExceededError, match="Bikort"):
+    with pytest.raises(FrikortBalanceExceededError, match="B-card"):
         compute_frikort_withholding(
             gross_income=Decimal("15000"),
             atp_employee_contribution=Decimal("99"),

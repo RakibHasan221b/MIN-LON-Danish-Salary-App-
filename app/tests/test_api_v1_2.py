@@ -71,7 +71,7 @@ def test_calculate_frikort_exceeding_balance_returns_400_not_silent_fallback():
         },
     )
     assert resp.status_code == 400
-    assert "Bikort" in resp.json()["detail"]
+    assert "B-card" in resp.json()["detail"]
 
 
 def test_calculate_frikort_missing_amount_returns_422():
