@@ -7,6 +7,14 @@ Covers all three calculation-behavior cases from the spec:
    standard 2026 rules, clearly labelled as an estimate
 3. deduction blank -> falls through to the existing standard estimate,
    completely unchanged (regression guard, not a new behavior)
+
+test_matches_real_payslip_partial_period_example is a regression test
+against a real DataLøn payslip (gross 1,050 / ATP 99 / AM-bidrag 76 on a
+base of 951 / A-Indkomst 875 / A-skat 0 / net 875) that caught two bugs
+in the original implementation: AM-bidrag was computed on gross income
+instead of gross-minus-ATP, and the taxable-fradrag step never subtracted
+ATP either. Both are fixed; the numeric expectations below for the
+30,000 DKK examples were recomputed to match the corrected order.
 """
 from decimal import Decimal
 
@@ -34,10 +42,29 @@ def test_payslip_withholding_follows_spec_order():
         tax_percentage=Decimal("0.37"),
         atp_employee_contribution=Decimal("99"),
     )
-    assert result.taxable_after_fradrag == Decimal("22393")
-    assert result.withheld_tax == Decimal("22393") * Decimal("0.37")
-    expected_net = Decimal("30000") - Decimal("2400") - result.withheld_tax - Decimal("99")
+    # taxable = gross - ATP - AM-bidrag - fradrag (ATP subtracted before
+    # fradrag is applied, matching a real payslip's A-Indkomst step)
+    assert result.taxable_after_fradrag == Decimal("30000") - Decimal("99") - Decimal("2400") - Decimal("5207")
+    assert result.withheld_tax == result.taxable_after_fradrag * Decimal("0.37")
+    expected_net = Decimal("30000") - Decimal("99") - Decimal("2400") - result.withheld_tax
     assert result.net_income == expected_net
+
+
+def test_matches_real_payslip_partial_period_example():
+    """Regression test against a real DataLøn payslip: 7 hours at 150
+    DKK/hour, gross 1,050 kr, ATP 99, AM-bidrag base 951 (gross - ATP),
+    AM-bidrag 76, fradrag consumed 875 (covers the whole A-Indkomst so
+    A-skat is 0), net 875."""
+    result = compute_payslip_withholding(
+        gross_income=Decimal("1050"),
+        am_bidrag_amount=(Decimal("1050") - Decimal("99")) * Decimal("0.08"),
+        monthly_deduction=Decimal("875"),
+        tax_percentage=Decimal("0.38"),
+        atp_employee_contribution=Decimal("99"),
+    )
+    assert round(result.taxable_after_fradrag) == 0
+    assert round(result.withheld_tax) == 0
+    assert round(result.net_income) == 875
 
 
 def test_payslip_taxable_floored_at_zero():
@@ -69,14 +96,15 @@ def test_case1_direct_payslip_withholding_matches_known_figures():
     result = calculate_monthly_withholding(salary_input)
 
     assert result.calculation_basis.value == "monthly_payslip"
-    assert result.am_bidrag == Decimal("2400")
+    # AM-bidrag is 8% of (gross - ATP) = 8% of 29,901, matching real payslips
+    assert result.am_bidrag == Decimal("2392")
     assert result.monthly_deduction_applied == Decimal("5207")
-    assert result.taxable_income == Decimal("22393")
+    assert result.taxable_income == Decimal("22302")
     assert result.tax_percentage_used == Decimal("0.37")
     assert result.tax_percentage_estimated is False
     assert result.atp_employee_contribution == Decimal("99")
-    assert result.state_tax_total == Decimal("8285")
-    assert result.net_income == Decimal("19216")
+    assert result.state_tax_total == Decimal("8252")
+    assert result.net_income == Decimal("19257")
     # gross - total_tax must reconcile exactly with the displayed net figure
     assert result.gross_income - result.total_tax == result.net_income
 

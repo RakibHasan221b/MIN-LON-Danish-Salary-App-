@@ -392,21 +392,25 @@ def _monthly_payslip_estimate(
 
     gross_income = base_gross_income + tips
 
-    # AM-bidrag computed directly on gross income here (payslip-style
-    # order) — NOT on gross-minus-ATP, unlike _standard_estimate and
-    # _tax_card_estimate. See app/calculations/payslip.py's module
-    # docstring for why this default flow uses a different order.
-    am_amount = am_bidrag.compute_am_bidrag(gross_income, am_rate, exempt=am_exempt)
-
-    monthly_deduction = salary_input.monthly_deduction or Decimal(0)
-    if period == "annual":
-        monthly_deduction *= MONTHS_PER_YEAR
-
     atp_contribution = atp.get_atp_employee_contribution(
         hours_worked, pay_frequency="monthly", year=tax_year
     )
     if period == "annual":
         atp_contribution *= MONTHS_PER_YEAR
+
+    # AM-bidrag is computed on gross MINUS the employee's ATP contribution,
+    # matching real Danish payslips (confirmed against a real DataLøn
+    # payslip: AM-bidrag's own "Grundlag" column is gross minus ATP, not
+    # gross) and the same base _standard_estimate/_tax_card_estimate use
+    # via am_bidrag.compute_am_bidrag_base. An earlier version of this
+    # function computed AM-bidrag on the full gross income directly and
+    # called that a deliberate simplification; it wasn't, it was a bug.
+    am_base = am_bidrag.compute_am_bidrag_base(gross_income, atp_contribution)
+    am_amount = am_bidrag.compute_am_bidrag(am_base, am_rate, exempt=am_exempt)
+
+    monthly_deduction = salary_input.monthly_deduction or Decimal(0)
+    if period == "annual":
+        monthly_deduction *= MONTHS_PER_YEAR
 
     tax_percentage_estimated = salary_input.tax_percentage is None
     if salary_input.tax_percentage is not None:
