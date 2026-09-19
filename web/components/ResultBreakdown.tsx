@@ -200,24 +200,14 @@ export default function ResultBreakdown({
             No AM-bidrag was applied, based on the age you entered.
           </p>
         )}
-        <div className="stat-grid" style={{ marginTop: 16 }}>
+        <hr className="section-divider" />
+        <div className="stat-grid">
           {primaryLines.map((line) => (
             <div key={line.label} className="breakdown-dash-line">
-              – {line.label}: {line.amount < 0 ? "-" : ""}
-              {formatDKKLine(Math.abs(line.amount))}
+              – {line.label}: {formatDKKLine(Math.abs(line.amount))}
             </div>
           ))}
         </div>
-        {secondaryLines.length > 0 && (
-          <div style={{ marginTop: 8 }}>
-            {secondaryLines.map((line) => (
-              <div key={line.label} className="breakdown-dash-line">
-                – {line.label}: {line.amount < 0 ? "-" : ""}
-                {formatDKKLine(Math.abs(line.amount))}
-              </div>
-            ))}
-          </div>
-        )}
         <div className="effective-rate">
           Effective tax rate: <strong>{(result.effective_tax_rate * 100).toFixed(1)}%</strong>
         </div>
@@ -225,8 +215,10 @@ export default function ResultBreakdown({
 
       {/* Holiday pay and currency, one click each, right on the main
           screen (matches the old Streamlit app's layout), not tucked
-          inside the collapsed details section below. */}
+          inside the collapsed details section below. Each is separated
+          by a horizontal rule, the same way the reference app does it. */}
       <div className="card">
+        <hr className="section-divider" />
         <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
           <input
             type="checkbox"
@@ -239,6 +231,7 @@ export default function ResultBreakdown({
           Show Holiday Pay Calculation
         </label>
         {showHoliday && <HolidayPaySection holidayPay={result.holiday_pay} />}
+        {showHoliday && <hr className="section-divider" />}
         {showHoliday && (
           <label
             style={{
@@ -246,7 +239,6 @@ export default function ResultBreakdown({
               alignItems: "center",
               gap: 8,
               fontWeight: 600,
-              marginTop: 12,
             }}
           >
             <input
@@ -261,13 +253,13 @@ export default function ResultBreakdown({
           <TotalWithHolidaySection total={result.total_with_holiday} />
         )}
 
+        <hr className="section-divider" />
         <label
           style={{
             display: "flex",
             alignItems: "center",
             gap: 8,
             fontWeight: 600,
-            marginTop: showHoliday ? 20 : 12,
           }}
         >
           <input
@@ -287,6 +279,21 @@ export default function ResultBreakdown({
         </summary>
 
         <div style={{ marginTop: 16 }}>
+          {secondaryLines.length > 0 && (
+            <>
+              <h3 style={{ fontSize: "0.95rem" }}>Calculation steps</h3>
+              {secondaryLines.map((line) => (
+                <div key={line.label} className="breakdown-line">
+                  <span>{line.label}</span>
+                  <span className={line.amount < 0 ? "amount-negative" : undefined}>
+                    {line.amount < 0 ? "-" : ""}
+                    {formatDKK(Math.abs(line.amount))}
+                  </span>
+                </div>
+              ))}
+            </>
+          )}
+
           <h3 style={{ fontSize: "0.95rem" }}>Allowances &amp; deductions</h3>
           {result.employment_allowance > 0 && (
             <div className="breakdown-line">

@@ -44,7 +44,7 @@ main {
 }
 
 h1 {
-  font-size: 2.1rem;
+  font-size: 2.75rem;
   font-weight: 700;
   color: var(--accent);
   margin: 8px 0 30px;
@@ -63,11 +63,18 @@ h1 {
 }
 
 .card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-bottom: 16px;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin-bottom: 28px;
+}
+
+/* The reference app's st.write("---") dividers between result sections. */
+.section-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 28px 0;
 }
 
 .field-label {
@@ -148,7 +155,6 @@ select:focus {
 }
 
 .calculate-btn {
-  width: 100%;
   padding: 10px 25px;
   border-radius: 6px;
   border: none;
@@ -222,8 +228,8 @@ select:focus {
    "- ATP: 0 DKK" / "- AM-bidrag (8%): 84 DKK" style directly under the
    stat tiles, instead of the boxed label/amount rows used elsewhere. */
 .breakdown-dash-line {
-  padding: 3px 0;
-  font-size: 0.95rem;
+  padding: 10px 0;
+  font-size: 1rem;
   color: var(--text);
 }
 
@@ -236,12 +242,8 @@ select:focus {
 }
 
 .effective-rate {
-  text-align: center;
   margin-top: 12px;
-  padding: 14px;
-  background: var(--card-elevated);
-  border-radius: 10px;
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .effective-rate strong {
@@ -308,16 +310,16 @@ select:focus {
 }
 
 .stat-label {
-  font-size: 0.95rem;
+  font-size: 1.75rem;
   font-weight: 700;
-  margin-bottom: 2px;
+  line-height: 1.3;
+  margin-bottom: 4px;
 }
 
 .stat-value {
-  font-size: 1.6rem;
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
 .stat-value.stat-blue {
