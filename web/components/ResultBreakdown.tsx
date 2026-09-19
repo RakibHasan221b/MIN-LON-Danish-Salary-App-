@@ -51,7 +51,7 @@ function formatDKKStat(amount: number): string {
 }
 
 function formatDKKLine(amount: number): string {
-  return new Intl.NumberFormat("en-US").format(Math.round(amount)) + " DKK";
+  return Math.round(amount).toString() + " DKK";
 }
 
 const METHOD_LABELS: Record<string, string> = {
@@ -147,6 +147,22 @@ export default function ResultBreakdown({
 
   const bulletLines = level2Lines.filter((line) => !STAT_TILE_LABELS.has(line.label));
 
+  // The reference app lays ATP / AM-bidrag / its income-tax line out in
+  // three columns (st.columns(3)), then anything else (its "Other Tax"
+  // line) as a plain line below. Our engine has more line items than
+  // the old flat model did (fradrag, municipal tax, church tax, ...),
+  // so the same three "primary" slots go in the 3-column row and
+  // whatever's left goes below, stacked, the same way "Other Tax" did.
+  const incomeTaxLine = bulletLines.find((l) => /^(A-tax|withheld tax|State tax|Income tax)/i.test(l.label));
+  const primaryLabels = new Set(
+    ["ATP", amBidragLabel, incomeTaxLine?.label].filter((l): l is string => l != null)
+  );
+  const primaryLines = ["ATP", amBidragLabel, incomeTaxLine?.label]
+    .filter((l): l is string => l != null)
+    .map((label) => bulletLines.find((l) => l.label === label))
+    .filter((l): l is { label: string; amount: number } => l != null);
+  const secondaryLines = bulletLines.filter((line) => !primaryLabels.has(line.label));
+
   return (
     <div>
       {/* Salary Breakdown — one card: the three stat tiles, then a plain
@@ -184,14 +200,24 @@ export default function ResultBreakdown({
             No AM-bidrag was applied, based on the age you entered.
           </p>
         )}
-        <div style={{ marginTop: 16 }}>
-          {bulletLines.map((line) => (
+        <div className="stat-grid" style={{ marginTop: 16 }}>
+          {primaryLines.map((line) => (
             <div key={line.label} className="breakdown-dash-line">
               – {line.label}: {line.amount < 0 ? "-" : ""}
               {formatDKKLine(Math.abs(line.amount))} DKK
             </div>
           ))}
         </div>
+        {secondaryLines.length > 0 && (
+          <div style={{ marginTop: 8 }}>
+            {secondaryLines.map((line) => (
+              <div key={line.label} className="breakdown-dash-line">
+                – {line.label}: {line.amount < 0 ? "-" : ""}
+                {formatDKKLine(Math.abs(line.amount))} DKK
+              </div>
+            ))}
+          </div>
+        )}
         <div className="effective-rate">
           Effective tax rate: <strong>{(result.effective_tax_rate * 100).toFixed(1)}%</strong>
         </div>

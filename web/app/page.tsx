@@ -127,7 +127,7 @@ export default function Home() {
 
   return (
     <main>
-      <h1 className="page-title">MIN LØN</h1>
+      <h1 className="page-title">Min Løn</h1>
       <p className="subtitle page-title">Calculate your estimated Danish net salary — 2026 rules</p>
 
       {error && <div className="error-box">{error}</div>}
