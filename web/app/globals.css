@@ -56,6 +56,16 @@ h1 {
   text-align: center;
 }
 
+/* Section headings, matching the reference app's st.subheader: white,
+   bold, no letter-spacing, noticeably smaller than the page title. */
+.section-heading {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: normal;
+  margin: 0 0 16px;
+}
+
 .subtitle {
   color: var(--text-muted);
   margin: 0 0 24px;
@@ -299,9 +309,13 @@ select:focus {
   gap: 16px;
 }
 
-@media (max-width: 480px) {
+/* Streamlit collapses its st.columns() to a single stack well before
+   phone width; keeping three columns any narrower than this squeezes
+   the labels and wraps the dash lines mid-amount. */
+@media (max-width: 700px) {
   .stat-grid {
     grid-template-columns: 1fr;
+    gap: 4px;
   }
 }
 

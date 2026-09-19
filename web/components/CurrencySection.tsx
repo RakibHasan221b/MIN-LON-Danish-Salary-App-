@@ -138,7 +138,7 @@ export default function CurrencySection({ result }: { result: CalculateResponse 
                 Current Exchange Rate: 1 DKK = {effectiveRate.toFixed(4)} {currency}
                 {!useManual && rateSource ? ` (${rateSource})` : ""}
               </p>
-              <h2 style={{ fontSize: "1.05rem" }}>💵 Converted to {currency}</h2>
+              <h2 className="section-heading">💵 Converted to {currency}</h2>
               <div className="breakdown-line">
                 <span>Gross Income</span>
                 <span>

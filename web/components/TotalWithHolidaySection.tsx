@@ -17,8 +17,8 @@ function formatDKK(amount: number): string {
 
 export default function TotalWithHolidaySection({ total }: { total: TotalWithHoliday }) {
   return (
-    <div className="card">
-      <h2 style={{ fontSize: "1.05rem", marginTop: 0 }}>🧾 Total Salary Including Holiday Pay</h2>
+    <div className="card" style={{ marginTop: 20 }}>
+      <h2 className="section-heading">🧾 Total Salary Including Holiday Pay</h2>
       <div className="stat-grid">
         <div className="stat-tile">
           <div className="stat-label">Gross + Holiday</div>

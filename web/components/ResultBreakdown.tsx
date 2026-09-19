@@ -172,9 +172,10 @@ export default function ResultBreakdown({
           cards. */}
       <Celebration />
       <div className="card">
-        <h1 style={{ fontSize: "1.15rem", margin: "4px 0 20px" }}>
-          💰 Salary Breakdown (in DKK)
-        </h1>
+        {/* st.subheader in the reference app: plain white, bold, normal
+            letter-spacing. Deliberately not an <h1>, which carries the
+            page title's blue color and 4px tracking. */}
+        <h2 className="section-heading">💰 Salary Breakdown (in DKK)</h2>
         <div className="stat-grid">
           <div className="stat-tile">
             <div className="stat-label">Gross Earned</div>

@@ -15,18 +15,18 @@ function formatDKK0(amount: number): string {
 
 export default function HolidayPaySection({ holidayPay }: { holidayPay: HolidayPay }) {
   return (
-    <div className="card">
-      <h2 style={{ fontSize: "1.05rem", marginTop: 0 }}>🏖️ Holiday Pay Breakdown (in DKK)</h2>
-      <p style={{ margin: "4px 0" }}>
+    <div className="card" style={{ marginTop: 20 }}>
+      <h2 className="section-heading">🏖️ Holiday Pay Breakdown (in DKK)</h2>
+      <p className="breakdown-dash-line" style={{ margin: 0 }}>
         Gross Holiday Pay: <strong>{formatDKK2(holidayPay.gross)}</strong>
       </p>
-      <p style={{ margin: "4px 0" }}>
+      <p className="breakdown-dash-line" style={{ margin: 0 }}>
         – AM-bidrag (8%): <strong>{formatDKK0(holidayPay.am_bidrag)}</strong>
       </p>
-      <p style={{ margin: "4px 0" }}>
+      <p className="breakdown-dash-line" style={{ margin: 0 }}>
         – Income tax: <strong>{formatDKK0(holidayPay.income_tax)}</strong>
       </p>
-      <p style={{ margin: "4px 0" }}>
+      <p className="breakdown-dash-line" style={{ margin: 0 }}>
         🚪 Net Holiday Pay: <strong>{formatDKK2(holidayPay.net)}</strong>
       </p>
     </div>
