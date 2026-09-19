@@ -165,7 +165,7 @@ export default function Home() {
           <div className="row">
             <div className="field">
               <label className="field-label" htmlFor="hours">
-                Hours worked
+                Enter Hours Worked
               </label>
               <input
                 id="hours"
@@ -179,7 +179,7 @@ export default function Home() {
             </div>
             <div className="field">
               <label className="field-label" htmlFor="minutes">
-                Minutes
+                Enter Minutes Worked
               </label>
               <input
                 id="minutes"
@@ -238,6 +238,11 @@ export default function Home() {
 
           <div className="field">
             <label className="field-label">Are you a member of Folkekirken?</label>
+            <p className="hint" style={{ marginTop: -4, marginBottom: 8 }}>
+              Folkekirken is Denmark&apos;s national (Lutheran) church. Most people born in
+              Denmark are automatically members unless they opted out, this affects a small
+              church tax. If you moved to Denmark, you likely are not a member.
+            </p>
             <div className="toggle-group">
               <button
                 type="button"
