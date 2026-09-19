@@ -276,3 +276,75 @@ def test_api_rejects_monthly_deduction_combined_with_tax_card_mode():
     )
     assert resp.status_code == 422
     assert "simple monthly flow" in resp.json()["detail"][0]["msg"]
+
+
+# ---------------------------------------------------------------------
+# Simplified UI (2026-09-19 product decision): the frontend no longer
+# collects a Hovedkort/Bikort withholding percentage for a second job.
+# Instead it sends the plain-language "B-card / second job" choice as
+# monthly_deduction=0 through the same simplified monthly-payslip flow
+# an "A-card" with a fradrag uses, so the tax is estimated from the
+# kommune/church/2026 rules with no fradrag applied. This is a contract
+# test against that exact request shape, standing in for a frontend
+# unit test since this repo has no JS test runner (see
+# web/lib/municipalitySearch.test.mjs for the one piece of frontend
+# logic that is pure enough to test directly with Node's built-in
+# runner).
+# ---------------------------------------------------------------------
+
+
+def test_api_second_job_bcard_shape_estimates_without_fradrag():
+    """The simplified "B-card / Second job" choice sends monthly_deduction=0
+    (not omitted) and no tax_card_mode, so it estimates tax from the
+    standard 2026 rules with no fradrag subtracted."""
+    resp = client.post(
+        "/calculate",
+        json={
+            "income_type": "fixed_salary",
+            "fixed_monthly_salary": 15000,
+            "municipality_name": "København",
+            "is_church_member": False,
+            "monthly_deduction": 0,
+        },
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["calculation_basis"] == "monthly_payslip"
+    assert body["tax_percentage_estimated"] is True
+    assert body["monthly_deduction_applied"] in (0, None)
+    # No fradrag was applied, so taxable income should equal gross minus
+    # AM-bidrag (minus ATP, which is 0 for a fixed monthly salary here).
+    assert body["taxable_income"] == pytest.approx(
+        body["gross_income"] - body["am_bidrag"] - body["atp_employee_contribution"], abs=1
+    )
+
+
+# ---------------------------------------------------------------------
+# ATP correction (2026-09-19): a short shift below the ATP bracket's
+# first threshold (39 hours/month) must show ATP as 0, rule-based from
+# app/data/atp_2026.json, never forced to match one employer's own
+# payroll figure for a one-day trial shift. This exercises the full
+# engine dispatch (not just the pure compute_payslip_withholding
+# function above), with the exact numbers the user independently
+# verified: 7 hours at 150 DKK/hour = 1,050 kr gross, AM-bidrag 8% of
+# the full 1,050 (no ATP to subtract) = 84, and net 966 when the
+# monthly fradrag entered is large enough to cover the rest, so A-skat
+# is 0.
+# ---------------------------------------------------------------------
+
+
+def test_hourly_shift_below_atp_threshold_is_not_forced_to_a_fixed_value():
+    salary_input = SalaryInput(
+        income_type=IncomeType.HOURLY_WAGE,
+        hourly_wage=Decimal("150"),
+        hours=7,
+        minutes=0,
+        municipality_name="København",
+        is_church_member=False,
+        monthly_deduction=Decimal("966"),
+    )
+    result = calculate_monthly_withholding(salary_input)
+    assert result.atp_employee_contribution == Decimal("0")
+    assert result.am_bidrag == Decimal("84")
+    assert result.taxable_income == Decimal("0")
+    assert result.net_income == Decimal("966")

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Municipality } from "@/lib/api";
+import { matchesMunicipalityQuery } from "@/lib/municipalitySearch";
 
 export default function MunicipalitySearch({
   municipalities,
@@ -15,10 +16,10 @@ export default function MunicipalitySearch({
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
 
+  // Accent-insensitive, Danish-letter-tolerant: "kob"/"kobenhavn"/
+  // "copenhagen" all suggest "København", no æ/ø/å keyboard needed.
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return municipalities;
-    return municipalities.filter((m) => m.name.toLowerCase().includes(q));
+    return municipalities.filter((m) => matchesMunicipalityQuery(m.name, query));
   }, [municipalities, query]);
 
   const selected = municipalities.find((m) => m.name === value);
@@ -31,7 +32,7 @@ export default function MunicipalitySearch({
       <input
         id="municipality-search"
         type="text"
-        placeholder="Search municipality..."
+        placeholder="Search municipality... (e.g. Copenhagen, kob, Aarhus)"
         value={open ? query : value}
         onFocus={() => {
           setOpen(true);

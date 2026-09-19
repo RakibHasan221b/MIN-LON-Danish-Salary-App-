@@ -2,9 +2,6 @@
 
 import { useState } from "react";
 import type { CalculateResponse } from "@/lib/api";
-import CurrencySection from "@/components/CurrencySection";
-import HolidayPaySection from "@/components/HolidayPaySection";
-import TotalWithHolidaySection from "@/components/TotalWithHolidaySection";
 
 function formatDKK(amount: number): string {
   const rounded = Math.round(amount);
@@ -15,7 +12,7 @@ const METHOD_LABELS: Record<string, string> = {
   standard_estimate: "Standard estimate (2026 rules)",
   tax_card: "Your tax card figures",
   frikort: "Frikort (tax-free up to your balance)",
-  monthly_payslip: "Your monthly payslip figures",
+  monthly_payslip: "Estimated from your municipality and the 2026 rules",
 };
 
 export default function ResultBreakdown({
@@ -29,24 +26,19 @@ export default function ResultBreakdown({
   const isFrikort = result.calculation_basis === "frikort";
   const isStandard = result.calculation_basis === "standard_estimate";
   const isMonthlyPayslip = result.calculation_basis === "monthly_payslip";
-  const [showHoliday, setShowHoliday] = useState(false);
-  const [showTotalWithHoliday, setShowTotalWithHoliday] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
-  const periodLabel = result.period === "monthly" ? "this month" : "this year";
-  const periodTitle = result.period === "monthly" ? "Monthly withholding estimate" : "Annual tax estimate";
-
-  // Level 2: the main breakdown lines, in the fixed order the spec asks
-  // for. Pulled from the individual result fields (not the generic
-  // `breakdown` array) so the labels and grouping are exactly what V1.2
-  // specifies, with zero-value optional lines hidden.
-  // Monthly-first flow (product decision): use the backend's own
-  // exact-order breakdown (Gross salary / AM-bidrag / Monthly fradrag /
-  // Taxable after fradrag / A-tax / ATP / Estimated net salary) rather
-  // than the generic level-2 construction below, which assumes the
-  // standard/tax-card/frikort shapes.
-  const level2Lines: { label: string; amount: number; hideIfZero?: boolean }[] = isMonthlyPayslip
-    ? result.breakdown.map((l) => ({ label: l.label, amount: l.amount }))
+  // Level 2: the main breakdown lines. Monthly-first flow (product
+  // decision): use the backend's own exact-order breakdown (Gross
+  // salary / AM-bidrag / Monthly fradrag / Taxable after fradrag /
+  // A-tax / ATP / Estimated net salary), with a zero "Monthly fradrag"
+  // line hidden since it means no fradrag was used (e.g. a B-card /
+  // second job, which deliberately doesn't apply one) rather than that
+  // the line is meaningful at 0.
+  const level2Lines: { label: string; amount: number }[] = isMonthlyPayslip
+    ? result.breakdown
+        .filter((l) => !(l.label === "Monthly fradrag" && l.amount === 0))
+        .map((l) => ({ label: l.label, amount: l.amount }))
     : [
         { label: "Gross income", amount: result.gross_income },
         ...(result.tips ? [{ label: "of which tips", amount: result.tips }] : []),
@@ -74,10 +66,10 @@ export default function ResultBreakdown({
       {/* LEVEL 1 — main result */}
       <div className="card">
         <p className="hint" style={{ marginTop: 0, marginBottom: 4 }}>
-          {periodTitle} · {METHOD_LABELS[result.calculation_basis] || result.calculation_basis}
+          {METHOD_LABELS[result.calculation_basis] || result.calculation_basis}
         </p>
         <h1 style={{ fontSize: "1.15rem", margin: "4px 0 16px" }}>
-          Estimated net income {periodLabel === "this month" ? "(this month)" : "(this year)"}
+          Estimated net salary (this month)
         </h1>
         <div className="breakdown-line">
           <span>Gross</span>
@@ -88,7 +80,7 @@ export default function ResultBreakdown({
           <span className="amount-negative">-{formatDKK(result.total_tax)}</span>
         </div>
         <div className="breakdown-line total">
-          <span>Estimated net income</span>
+          <span>Estimated net salary</span>
           <span>{formatDKK(result.net_income)}</span>
         </div>
         {isStandard && (
@@ -100,7 +92,7 @@ export default function ResultBreakdown({
         {isMonthlyPayslip && (
           <p className="hint" style={{ marginTop: 8 }}>
             {result.tax_percentage_estimated
-              ? "You entered a monthly deduction but not a tax percentage, so we estimated your traekprocent from the 2026 standard rules. It's labeled as an estimate, not your actual SKAT-issued tax percentage."
+              ? "We estimated your tax from your municipality, church membership and the 2026 rules, not your actual SKAT-issued tax percentage."
               : "Calculated payslip-style from the monthly deduction and tax percentage you entered, the same way your employer's payroll would."}
           </p>
         )}
@@ -109,6 +101,10 @@ export default function ResultBreakdown({
             No AM-bidrag was applied, based on the age you entered.
           </p>
         )}
+        <p className="hint" style={{ marginTop: 8 }}>
+          Your payslip may differ if your employer deducted ATP or used different
+          payroll-period rules.
+        </p>
       </div>
 
       {/* LEVEL 2 — main breakdown */}
@@ -146,7 +142,7 @@ export default function ResultBreakdown({
       {/* LEVEL 3 — expandable additional details, progressive disclosure */}
       <details className="card" open={showDetails} onToggle={(e) => setShowDetails((e.target as HTMLDetailsElement).open)}>
         <summary style={{ cursor: "pointer", fontWeight: 600 }}>
-          Additional details (allowances, assumptions, holiday pay, currency)
+          Additional details (allowances, assumptions)
         </summary>
 
         <div style={{ marginTop: 16 }}>
@@ -187,7 +183,7 @@ export default function ResultBreakdown({
             </>
           )}
 
-          <h3 style={{ fontSize: "0.95rem" }}>Tax-card assumptions</h3>
+          <h3 style={{ fontSize: "0.95rem" }}>Assumptions</h3>
           <p className="hint">
             Method used: {METHOD_LABELS[result.calculation_basis] || result.calculation_basis}.
             {isFrikort && result.remaining_frikort_amount != null && (
@@ -201,56 +197,18 @@ export default function ResultBreakdown({
               </>
             )}
           </p>
-
-          <h3 style={{ fontSize: "0.95rem" }}>Annualized figures</h3>
-          <p className="hint">
-            This result is a {result.period} figure. {result.period === "monthly"
-              ? "Multiply by 12 for a rough yearly figure, or switch to \"Annual tax estimate\" on the input screen for the true full-year calculation (monthly x12 can differ slightly from the annual figure due to rounding)."
-              : "This is the true full-year calculation, not 12x a monthly estimate."}
-          </p>
-
-          <h3 style={{ fontSize: "0.95rem" }}>Holiday pay</h3>
-          <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
-            <input
-              type="checkbox"
-              checked={showHoliday}
-              onChange={(e) => {
-                setShowHoliday(e.target.checked);
-                if (!e.target.checked) setShowTotalWithHoliday(false);
-              }}
-            />
-            Show Holiday Pay Calculation
-          </label>
-          {showHoliday && (
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                fontWeight: 400,
-                marginTop: 12,
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={showTotalWithHoliday}
-                onChange={(e) => setShowTotalWithHoliday(e.target.checked)}
-              />
-              Show Total Salary Including Holiday Pay
-            </label>
+          {result.assumptions.length > 0 && (
+            <ul className="assumption-list">
+              {result.assumptions.map((a) => (
+                <li key={a}>{a}</li>
+              ))}
+            </ul>
           )}
-          {showHoliday && <HolidayPaySection holidayPay={result.holiday_pay} />}
-          {showHoliday && showTotalWithHoliday && (
-            <TotalWithHolidaySection total={result.total_with_holiday} />
-          )}
-
-          <h3 style={{ fontSize: "0.95rem" }}>Currency conversion</h3>
-          <CurrencySection result={result} />
         </div>
       </details>
 
       <div className="disclaimer">
-        Estimated net income based on 2026 Danish tax rules and the information
+        Estimated net salary based on 2026 Danish tax rules and the information
         provided. This is{" "}
         {isTaxCard
           ? "based on the tax card figures you supplied"
@@ -258,18 +216,11 @@ export default function ResultBreakdown({
           ? "based on the Frikort balance you supplied"
           : isMonthlyPayslip
           ? result.tax_percentage_estimated
-            ? "based on the monthly deduction you supplied, with the tax percentage estimated from your municipality and the 2026 standard rules"
+            ? "estimated from your municipality, church membership and the 2026 standard rules"
             : "based on the monthly deduction and tax percentage you supplied"
           : "a standard estimate"}{" "}
         and does not claim to be exactly what your employer will pay you unless your
         actual SKAT tax-card details were used.
-        {result.assumptions.length > 0 && (
-          <ul className="assumption-list">
-            {result.assumptions.map((a) => (
-              <li key={a}>{a}</li>
-            ))}
-          </ul>
-        )}
       </div>
     </div>
   );
