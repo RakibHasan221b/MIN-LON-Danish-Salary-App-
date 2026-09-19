@@ -204,7 +204,7 @@ export default function ResultBreakdown({
           {primaryLines.map((line) => (
             <div key={line.label} className="breakdown-dash-line">
               – {line.label}: {line.amount < 0 ? "-" : ""}
-              {formatDKKLine(Math.abs(line.amount))} DKK
+              {formatDKKLine(Math.abs(line.amount))}
             </div>
           ))}
         </div>
@@ -213,7 +213,7 @@ export default function ResultBreakdown({
             {secondaryLines.map((line) => (
               <div key={line.label} className="breakdown-dash-line">
                 – {line.label}: {line.amount < 0 ? "-" : ""}
-                {formatDKKLine(Math.abs(line.amount))} DKK
+                {formatDKKLine(Math.abs(line.amount))}
               </div>
             ))}
           </div>

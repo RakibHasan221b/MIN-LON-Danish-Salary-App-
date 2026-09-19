@@ -63,6 +63,12 @@ _ALWAYS_SHOW_LABELS = {
     "Monthly fradrag",
     "Taxable after fradrag",
     "A-tax / withheld tax",
+    # ATP and AM-bidrag are always shown even at 0 kr (e.g. a shift short
+    # enough that ATP doesn't apply), matching the user's reference app,
+    # which always prints these lines regardless of amount.
+    "ATP",
+    "AM-bidrag",
+    "State Tax / A-skat (tax card)",
 }
 
 
