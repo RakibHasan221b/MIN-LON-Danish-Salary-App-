@@ -125,14 +125,6 @@ export default function Home() {
     }
   }
 
-  if (result) {
-    return (
-      <main>
-        <ResultBreakdown result={result} onBack={() => setResult(null)} />
-      </main>
-    );
-  }
-
   return (
     <main>
       <h1 className="page-title">MIN LØN</h1>
@@ -383,6 +375,8 @@ export default function Home() {
           </button>
         </div>
       )}
+
+      {result && <ResultBreakdown result={result} municipalities={municipalities} />}
     </main>
   );
 }

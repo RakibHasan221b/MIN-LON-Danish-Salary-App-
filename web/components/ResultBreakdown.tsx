@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { CalculateResponse } from "@/lib/api";
+import type { CalculateResponse, Municipality } from "@/lib/api";
 import CurrencySection from "@/components/CurrencySection";
 import HolidayPaySection from "@/components/HolidayPaySection";
 import TotalWithHolidaySection from "@/components/TotalWithHolidaySection";
@@ -50,12 +50,12 @@ const METHOD_LABELS: Record<string, string> = {
 
 export default function ResultBreakdown({
   result,
-  onBack,
+  municipalities,
 }: {
   result: CalculateResponse;
-  onBack: () => void;
+  municipalities: Municipality[];
 }) {
-  const isTaxCard = result.calculation_basis === "tax_card";
+  const municipality = municipalities.find((m) => m.name === result.municipality_name);
   const isFrikort = result.calculation_basis === "frikort";
   const isStandard = result.calculation_basis === "standard_estimate";
   const isMonthlyPayslip = result.calculation_basis === "monthly_payslip";
@@ -71,23 +71,50 @@ export default function ResultBreakdown({
   // line hidden since it means no fradrag was used (e.g. a B-card /
   // second job, which deliberately doesn't apply one) rather than that
   // the line is meaningful at 0.
+  // Percentage suffixes on line labels, matching the old Streamlit app's
+  // "AM-bidrag (8%)" / "A-skat (38%)" style, using our real (not flat-guessed)
+  // rates: 8% is the statutory AM-bidrag rate, municipal/church rates come
+  // from the selected municipality, and the A-tax/withheld rate comes from
+  // whichever percentage the calculation actually used.
+  const pct = (fraction: number) => `${(fraction * 100).toFixed(2).replace(/\.?0+$/, "")}%`;
+  const amBidragLabel = "AM-bidrag (8%)";
+  const municipalTaxLabel =
+    municipality != null ? `Municipal tax (${pct(municipality.municipal_tax_rate)})` : "Municipal tax";
+  const churchTaxLabel =
+    municipality != null ? `Church tax (${pct(municipality.church_tax_rate)})` : "Church tax";
+  const withheldRateLabel =
+    result.tax_percentage_used != null ? ` (${pct(result.tax_percentage_used)})` : "";
+
+  function labelWithRate(label: string): string {
+    if (label === "AM-bidrag") return amBidragLabel;
+    if (label === "Municipal tax") return municipalTaxLabel;
+    if (label === "Church tax") return churchTaxLabel;
+    if (/^A-tax|withheld tax/i.test(label)) return `${label}${withheldRateLabel}`;
+    return label;
+  }
+
   const level2Lines: { label: string; amount: number }[] = isMonthlyPayslip
     ? result.breakdown
         .filter((l) => !(l.label === "Monthly fradrag" && l.amount === 0))
-        .map((l) => ({ label: l.label, amount: l.amount }))
+        .map((l) => ({ label: labelWithRate(l.label), amount: l.amount }))
     : [
         { label: "Gross income", amount: result.gross_income },
         ...(result.tips ? [{ label: "of which tips", amount: result.tips }] : []),
         { label: "ATP", amount: -result.atp_employee_contribution },
-        { label: "AM-bidrag", amount: -result.am_bidrag },
+        { label: amBidragLabel, amount: -result.am_bidrag },
         ...(isStandard
           ? [
               { label: "State tax", amount: -result.state_tax_total },
-              { label: "Municipal tax", amount: -result.municipal_tax },
+              { label: municipalTaxLabel, amount: -result.municipal_tax },
             ]
-          : [{ label: isFrikort ? "Income tax (tax-free)" : "Withheld tax", amount: -result.state_tax_total }]),
+          : [
+              {
+                label: `${isFrikort ? "Income tax (tax-free)" : "Withheld tax"}${withheldRateLabel}`,
+                amount: -result.state_tax_total,
+              },
+            ]),
         ...(result.is_church_member && result.church_tax
-          ? [{ label: "Church tax", amount: -result.church_tax }]
+          ? [{ label: churchTaxLabel, amount: -result.church_tax }]
           : []),
         { label: "Total tax", amount: -result.total_tax },
         { label: "Net income", amount: result.net_income },
@@ -95,10 +122,6 @@ export default function ResultBreakdown({
 
   return (
     <div>
-      <button className="back-link" onClick={onBack}>
-        ← Edit inputs
-      </button>
-
       {/* LEVEL 1 — main result */}
       <Celebration />
       <div className="card">
@@ -128,22 +151,11 @@ export default function ResultBreakdown({
             SKAT-issued tax card.
           </p>
         )}
-        {isMonthlyPayslip && (
-          <p className="hint" style={{ marginTop: 8 }}>
-            {result.tax_percentage_estimated
-              ? "We estimated your tax from your municipality, church membership and the 2026 rules, not your actual SKAT-issued tax percentage."
-              : "Calculated payslip-style from the monthly deduction and tax percentage you entered, the same way your employer's payroll would."}
-          </p>
-        )}
         {result.age_am_bidrag_exempt && (
           <p className="hint" style={{ marginTop: 8 }}>
             No AM-bidrag was applied, based on the age you entered.
           </p>
         )}
-        <p className="hint" style={{ marginTop: 8 }}>
-          Your payslip may differ if your employer deducted ATP or used different
-          payroll-period rules.
-        </p>
       </div>
 
       {/* LEVEL 2 — main breakdown */}
@@ -303,21 +315,7 @@ export default function ResultBreakdown({
         </div>
       </details>
 
-      <div className="disclaimer">
-        Estimated net salary based on 2026 Danish tax rules and the information
-        provided. This is{" "}
-        {isTaxCard
-          ? "based on the tax card figures you supplied"
-          : isFrikort
-          ? "based on the Frikort balance you supplied"
-          : isMonthlyPayslip
-          ? result.tax_percentage_estimated
-            ? "estimated from your municipality, church membership and the 2026 standard rules"
-            : "based on the monthly deduction and tax percentage you supplied"
-          : "a standard estimate"}{" "}
-        and does not claim to be exactly what your employer will pay you unless your
-        actual SKAT tax-card details were used.
-      </div>
+      <div className="disclaimer">Estimate based on 2026 Danish tax rules, not an official payslip.</div>
     </div>
   );
 }
