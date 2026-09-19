@@ -1,13 +1,14 @@
 :root {
-  --bg: #f7f8fa;
-  --card: #ffffff;
-  --text: #1a1d23;
-  --text-muted: #6b7280;
-  --border: #e2e5ea;
-  --accent: #b3272d;
-  --accent-hover: #971f24;
-  --positive: #1a7f4e;
-  --negative: #b3272d;
+  --bg: #0e1117;
+  --card: #161a23;
+  --card-elevated: #1c212d;
+  --text: #fafafa;
+  --text-muted: #9aa1b1;
+  --border: #2d3341;
+  --accent: #2f8fef;
+  --accent-hover: #4a9ff5;
+  --positive: #3ddc84;
+  --negative: #ff6b6b;
   --radius: 12px;
 }
 
@@ -32,7 +33,9 @@ main {
 }
 
 h1 {
-  font-size: 1.6rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent);
   margin: 8px 0 2px;
 }
 
@@ -67,7 +70,7 @@ h1 {
   padding: 12px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: var(--bg);
+  background: var(--card-elevated);
   color: var(--text);
   font-size: 0.95rem;
   cursor: pointer;
@@ -90,8 +93,12 @@ select {
   border-radius: 10px;
   border: 1px solid var(--border);
   font-size: 1rem;
-  background: white;
+  background: var(--card-elevated);
   color: var(--text);
+}
+
+input::placeholder {
+  color: var(--text-muted);
 }
 
 input:focus,
@@ -152,7 +159,7 @@ select:focus {
   margin-top: 4px;
   max-height: 220px;
   overflow-y: auto;
-  background: white;
+  background: var(--card-elevated);
 }
 
 .municipality-option {
@@ -165,7 +172,7 @@ select:focus {
 
 .municipality-option:hover,
 .municipality-option.highlighted {
-  background: var(--bg);
+  background: var(--border);
 }
 
 .municipality-selected {
@@ -206,13 +213,14 @@ select:focus {
   text-align: center;
   margin-top: 12px;
   padding: 14px;
-  background: var(--bg);
+  background: var(--card-elevated);
   border-radius: 10px;
   font-size: 0.95rem;
 }
 
 .effective-rate strong {
   font-size: 1.2rem;
+  color: var(--accent);
 }
 
 .disclaimer {
@@ -242,9 +250,9 @@ select:focus {
 }
 
 .error-box {
-  background: #fdecea;
-  border: 1px solid #f5c2c0;
-  color: #7a1f1b;
+  background: #2d1517;
+  border: 1px solid #5c2326;
+  color: #ff9a9a;
   padding: 12px;
   border-radius: 10px;
   font-size: 0.9rem;

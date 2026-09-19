@@ -25,7 +25,8 @@ interface FormState {
   fixedSalary: string;
   municipalityName: string;
   isChurchMember: boolean | null;
-  age: string;
+  isAdult: boolean | null;
+  isSecondJob: boolean | null;
 
   // Monthly-first default flow (product decision: no Hovedkort/Bikort/
   // Frikort or annual-tax understanding required to use the app).
@@ -52,7 +53,8 @@ const DEFAULT_STATE: FormState = {
   fixedSalary: "",
   municipalityName: "København",
   isChurchMember: null,
-  age: "",
+  isAdult: null,
+  isSecondJob: null,
   monthlyDeduction: "",
   taxPercentage: "",
   showAdvanced: false,
@@ -107,7 +109,7 @@ export default function Home() {
       income_type: form.incomeMode,
       municipality_name: form.municipalityName,
       is_church_member: !!form.isChurchMember,
-      age: form.age !== "" ? parseInt(form.age, 10) : undefined,
+      age: form.isAdult === false ? 17 : undefined,
       tips: form.tips !== "" ? parseFloat(form.tips) : undefined,
       extra_deduction: form.extraDeduction !== "" ? parseFloat(form.extraDeduction) : undefined,
       tax_card_mode: form.useTaxCard ? "my_tax_card" : "standard_estimate",
@@ -190,20 +192,6 @@ export default function Home() {
 
       {form.incomeMode === "hourly_wage" && (
         <div className="card">
-          <div className="field">
-            <label className="field-label" htmlFor="hourly-wage">
-              Hourly wage (DKK/hour)
-            </label>
-            <input
-              id="hourly-wage"
-              type="number"
-              inputMode="decimal"
-              min={0}
-              value={form.hourlyWage}
-              onChange={(e) => update("hourlyWage", e.target.value)}
-              placeholder="e.g. 150"
-            />
-          </div>
           <div className="row">
             <div className="field">
               <label className="field-label" htmlFor="hours">
@@ -233,6 +221,20 @@ export default function Home() {
                 onChange={(e) => update("minutes", e.target.value)}
               />
             </div>
+          </div>
+          <div className="field">
+            <label className="field-label" htmlFor="hourly-wage">
+              Hourly wage (DKK/hour)
+            </label>
+            <input
+              id="hourly-wage"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              value={form.hourlyWage}
+              onChange={(e) => update("hourlyWage", e.target.value)}
+              placeholder="e.g. 150"
+            />
           </div>
         </div>
       )}
@@ -285,64 +287,79 @@ export default function Home() {
           </div>
 
           <div className="field">
-            <label className="field-label" htmlFor="age">
-              Age (Optional)
-            </label>
-            <input
-              id="age"
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={120}
-              value={form.age}
-              onChange={(e) => update("age", e.target.value)}
-              placeholder="e.g. 25"
-              style={{ maxWidth: 160 }}
-            />
-            <p className="hint" style={{ marginTop: 4 }}>
-              Your age is required because Danish tax rules for 2026 treat AM-bidrag
-              differently depending on your age.
+            <label className="field-label">Which tax card is this job on?</label>
+            <div className="toggle-group">
+              <button
+                type="button"
+                className={`toggle-btn ${form.isSecondJob !== true ? "active" : ""}`}
+                onClick={() =>
+                  setForm((f) => ({ ...f, isSecondJob: false, useTaxCard: false }))
+                }
+              >
+                Tax card A (main job)
+              </button>
+              <button
+                type="button"
+                className={`toggle-btn ${form.isSecondJob === true ? "active" : ""}`}
+                onClick={() =>
+                  setForm((f) => ({
+                    ...f,
+                    isSecondJob: true,
+                    useTaxCard: true,
+                    taxCardType: "bikort",
+                  }))
+                }
+              >
+                Tax card B (second job)
+              </button>
+            </div>
+            <p className="hint">
+              Card A is your main job, most people have this. Card B is for a second job
+              at the same time, it has no tax-free allowance of its own, so SKAT gives it
+              a straight withholding percentage instead.
             </p>
           </div>
 
+          {form.isSecondJob === true && (
+            <div className="field">
+              <label className="field-label" htmlFor="second-job-pct">
+                Withholding % for this job (from your tax card B / Bikort)
+              </label>
+              <input
+                id="second-job-pct"
+                type="number"
+                inputMode="decimal"
+                min={0}
+                max={100}
+                value={form.taxCardPercentage}
+                onChange={(e) => update("taxCardPercentage", e.target.value)}
+                placeholder="e.g. 40"
+                style={{ maxWidth: 160 }}
+              />
+              <p className="hint">
+                Check skat.dk or your forskudsopgørelse for this job's exact percentage.
+              </p>
+            </div>
+          )}
+
           {!form.useTaxCard && (
             <div className="field">
-              <label className="field-label">Your monthly tax details (optional)</label>
-              <div className="row">
-                <div className="field">
-                  <label className="field-label" htmlFor="monthly-deduction">
-                    Monthly deduction / Fradrag (DKK)
-                  </label>
-                  <input
-                    id="monthly-deduction"
-                    type="number"
-                    inputMode="decimal"
-                    min={0}
-                    value={form.monthlyDeduction}
-                    onChange={(e) => update("monthlyDeduction", e.target.value)}
-                    placeholder="e.g. 5207"
-                  />
-                </div>
-                <div className="field">
-                  <label className="field-label" htmlFor="tax-percentage">
-                    Tax percentage / Trækprocent (Optional)
-                  </label>
-                  <input
-                    id="tax-percentage"
-                    type="number"
-                    inputMode="decimal"
-                    min={0}
-                    max={100}
-                    value={form.taxPercentage}
-                    onChange={(e) => update("taxPercentage", e.target.value)}
-                    placeholder="e.g. 37"
-                  />
-                </div>
-              </div>
+              <label className="field-label" htmlFor="monthly-deduction">
+                Monthly deduction / Fradrag (DKK, optional)
+              </label>
+              <input
+                id="monthly-deduction"
+                type="number"
+                inputMode="decimal"
+                min={0}
+                value={form.monthlyDeduction}
+                onChange={(e) => update("monthlyDeduction", e.target.value)}
+                placeholder="e.g. 5207"
+              />
               <p className="hint">
-                Both from your skattekort or payslip. Enter both for the closest match to
-                your real payslip. Enter just the deduction and we&apos;ll estimate your
-                percentage. Leave both blank for a standard 2026 estimate.
+                From your skattekort or payslip. We&apos;ll estimate your tax percentage
+                for you, no need to know it. Leave this blank too for a standard 2026
+                estimate instead.
               </p>
             </div>
           )}
@@ -357,6 +374,30 @@ export default function Home() {
             </summary>
 
             <div style={{ marginTop: 16 }}>
+              <div className="field">
+                <label className="field-label">Are you 18 or older? (Optional)</label>
+                <div className="toggle-group">
+                  <button
+                    type="button"
+                    className={`toggle-btn ${form.isAdult === true ? "active" : ""}`}
+                    onClick={() => update("isAdult", true)}
+                  >
+                    Yes
+                  </button>
+                  <button
+                    type="button"
+                    className={`toggle-btn ${form.isAdult === false ? "active" : ""}`}
+                    onClick={() => update("isAdult", false)}
+                  >
+                    No
+                  </button>
+                </div>
+                <p className="hint" style={{ marginTop: 4 }}>
+                  Only matters for AM-bidrag, which doesn't apply if you're 17 or under.
+                  Leave unanswered if you're an adult, it's the default.
+                </p>
+              </div>
+
               <div className="row">
                 <div className="field">
                   <label className="field-label" htmlFor="tips">
@@ -392,6 +433,30 @@ export default function Home() {
                 deduction reduces your municipal/church tax base — it&apos;s on top of the
                 automatic 2026 personal allowance, not a replacement for it.
               </p>
+
+              {!form.useTaxCard && (
+                <div className="field">
+                  <label className="field-label" htmlFor="tax-percentage">
+                    Tax percentage / Trækprocent (Optional)
+                  </label>
+                  <input
+                    id="tax-percentage"
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    max={100}
+                    value={form.taxPercentage}
+                    onChange={(e) => update("taxPercentage", e.target.value)}
+                    placeholder="e.g. 37"
+                    style={{ maxWidth: 160 }}
+                  />
+                  <p className="hint">
+                    Only if you already know your exact SKAT-issued withholding percentage
+                    and want the result to match it precisely instead of an estimate. Almost
+                    nobody needs to fill this in.
+                  </p>
+                </div>
+              )}
 
               <div className="field">
                 <label className="field-label">How should we calculate this?</label>
