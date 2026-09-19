@@ -132,7 +132,9 @@ def _to_response(result: TaxResult) -> CalculateResponse:
             else None
         ),
         monthly_deduction_applied=(
-            float(result.monthly_deduction_applied) if result.monthly_deduction_applied else None
+            float(result.monthly_deduction_applied)
+            if result.monthly_deduction_applied is not None
+            else None
         ),
         tax_percentage_used=(
             float(result.tax_percentage_used) if result.tax_percentage_used is not None else None
