@@ -90,7 +90,15 @@ export interface CalculateResponse {
   assumptions: string[];
 }
 
-export type SupportedCurrency = "USD" | "EUR" | "BDT";
+/** Currency codes are validated by the backend's own list, which now covers
+ *  the EU/EEA plus the currencies people most often send money home in, so
+ *  this is a plain string rather than a hardcoded union of three. */
+export type SupportedCurrency = string;
+
+export interface Currency {
+  code: string;
+  name: string;
+}
 
 export interface ExchangeRateResponse {
   currency: string;
@@ -99,6 +107,12 @@ export interface ExchangeRateResponse {
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+export async function fetchCurrencies(): Promise<Currency[]> {
+  const res = await fetch(`${API_BASE}/currencies`, { cache: "force-cache" });
+  if (!res.ok) throw new Error("Could not load currencies");
+  return res.json();
+}
 
 export async function fetchMunicipalities(): Promise<Municipality[]> {
   const res = await fetch(`${API_BASE}/municipalities`, { cache: "force-cache" });

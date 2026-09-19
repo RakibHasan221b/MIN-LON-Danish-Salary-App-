@@ -1,17 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import CurrencySearch from "@/components/CurrencySearch";
 import {
+  fetchCurrencies,
   fetchExchangeRate,
   type CalculateResponse,
-  type SupportedCurrency,
+  type Currency,
 } from "@/lib/api";
 
-const CURRENCIES: SupportedCurrency[] = ["EUR", "USD", "BDT"];
-
 export default function CurrencySection({ result }: { result: CalculateResponse }) {
-  const [enabled, setEnabled] = useState(false);
-  const [currency, setCurrency] = useState<SupportedCurrency>("EUR");
+  // This component used to render its own "Enable Currency Conversion"
+  // checkbox on top of the identical one in ResultBreakdown, so the user had
+  // to tick two boxes that looked the same before anything happened. The
+  // parent's checkbox is the only one now.
+  const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [currency, setCurrency] = useState<string | null>(null);
   const [includeHoliday, setIncludeHoliday] = useState(false);
   const [liveRate, setLiveRate] = useState<number | null>(null);
   const [rateSource, setRateSource] = useState<string | null>(null);
@@ -21,7 +25,11 @@ export default function CurrencySection({ result }: { result: CalculateResponse 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!enabled) return;
+    fetchCurrencies().then(setCurrencies).catch(() => setCurrencies([]));
+  }, []);
+
+  useEffect(() => {
+    if (!currency) return;
     let cancelled = false;
     setLoading(true);
     setUnavailable(false);
@@ -40,7 +48,7 @@ export default function CurrencySection({ result }: { result: CalculateResponse 
     return () => {
       cancelled = true;
     };
-  }, [enabled, currency]);
+  }, [currency]);
 
   const effectiveRate = useManual ? parseFloat(manualRate) || null : liveRate;
 
@@ -51,112 +59,92 @@ export default function CurrencySection({ result }: { result: CalculateResponse 
   const dkkTax = includeHoliday ? result.total_with_holiday.tax : result.total_tax;
 
   function formatConverted(amount: number): string {
-    if (currency === "BDT") {
-      return new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(amount);
-    }
-    return amount.toFixed(2);
+    // BDT keeps the lakh/crore grouping the original app used for it.
+    const locale = currency === "BDT" ? "en-IN" : "en-US";
+    return new Intl.NumberFormat(locale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
   }
 
   return (
-    <div className="card">
-      <div className="field">
-        <label className="field-label" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <input
-            type="checkbox"
-            checked={enabled}
-            onChange={(e) => setEnabled(e.target.checked)}
-          />
-          Enable Currency Conversion
-        </label>
-      </div>
+    <div className="card" style={{ marginTop: 20 }}>
+      <CurrencySearch
+        currencies={currencies}
+        value={currency}
+        onChange={setCurrency}
+      />
 
-      {enabled && (
+      {currency && (
         <>
-          <div className="field">
-            <label className="field-label" htmlFor="currency-select">
-              Currency
-            </label>
-            <select
-              id="currency-select"
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value as SupportedCurrency)}
-            >
-              {CURRENCIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
+          <label className="checkbox-row">
+            <input
+              type="checkbox"
+              checked={includeHoliday}
+              onChange={(e) => setIncludeHoliday(e.target.checked)}
+            />
+            Include holiday pay in the conversion
+          </label>
 
-          <div className="field">
-            <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 400 }}>
-              <input
-                type="checkbox"
-                checked={includeHoliday}
-                onChange={(e) => setIncludeHoliday(e.target.checked)}
-              />
-              Include Holiday Pay
-            </label>
-          </div>
-
-          {loading && <p className="hint">Fetching exchange rate…</p>}
-
-          {unavailable && !useManual && (
-            <div className="error-box">
-              Currency conversion temporarily unavailable. Your DKK results above are
-              still accurate. Enter a rate manually below if you have one.
-            </div>
-          )}
-
-          <div className="field">
-            <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 400 }}>
-              <input
-                type="checkbox"
-                checked={useManual}
-                onChange={(e) => setUseManual(e.target.checked)}
-              />
-              Manual exchange rate
-            </label>
-            {useManual && (
+          <label className="checkbox-row">
+            <input
+              type="checkbox"
+              checked={useManual}
+              onChange={(e) => setUseManual(e.target.checked)}
+            />
+            Enter the exchange rate myself
+          </label>
+          {useManual && (
+            <div className="field">
               <input
                 type="number"
                 inputMode="decimal"
                 min={0}
                 step="0.0001"
-                placeholder={`1 DKK = X.XXXX ${currency}`}
+                placeholder={`1 DKK = ? ${currency}`}
                 value={manualRate}
                 onChange={(e) => setManualRate(e.target.value)}
-                style={{ marginTop: 8 }}
               />
-            )}
-          </div>
+            </div>
+          )}
+
+          {loading && <p className="breakdown-dash-line">Fetching exchange rate...</p>}
+
+          {unavailable && !useManual && (
+            <div className="error-box">
+              Exchange rates are unavailable right now. Your DKK figures above are
+              unaffected. Tick the box above to enter a rate yourself.
+            </div>
+          )}
 
           {effectiveRate && (
             <>
-              <p className="hint">
-                Current Exchange Rate: 1 DKK = {effectiveRate.toFixed(4)} {currency}
+              <p className="breakdown-dash-line">
+                <strong>Current exchange rate:</strong> 1 DKK ={" "}
+                {effectiveRate.toFixed(4)} {currency}
                 {!useManual && rateSource ? ` (${rateSource})` : ""}
               </p>
-              <h2 className="section-heading">💵 Converted to {currency}</h2>
-              <div className="breakdown-line">
-                <span>Gross Income</span>
-                <span>
+              <h2 className="section-heading" style={{ marginTop: 20 }}>
+                💵 Converted to {currency}
+              </h2>
+              <p className="breakdown-dash-line">
+                Gross Income:{" "}
+                <strong>
                   {formatConverted(dkkGross * effectiveRate)} {currency}
-                </span>
-              </div>
-              <div className="breakdown-line">
-                <span>Net Income</span>
-                <span>
+                </strong>
+              </p>
+              <p className="breakdown-dash-line">
+                Net Income:{" "}
+                <strong>
                   {formatConverted(dkkNet * effectiveRate)} {currency}
-                </span>
-              </div>
-              <div className="breakdown-line">
-                <span>Total Tax Paid</span>
-                <span>
+                </strong>
+              </p>
+              <p className="breakdown-dash-line">
+                Total Tax Paid:{" "}
+                <strong>
                   {formatConverted(dkkTax * effectiveRate)} {currency}
-                </span>
-              </div>
+                </strong>
+              </p>
             </>
           )}
         </>

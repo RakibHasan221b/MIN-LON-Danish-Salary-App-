@@ -14,8 +14,24 @@ def clear_cache():
 
 
 def test_unsupported_currency_raises_value_error():
+    # GBP used to stand in for "unsupported" here; it is a real supported
+    # currency now, so use a code that is not a currency at all.
     with pytest.raises(ValueError):
-        get_exchange_rate("GBP")
+        get_exchange_rate("XYZ")
+
+
+def test_supported_currencies_cover_the_eu_and_common_remittance_targets():
+    from api.currency import SUPPORTED_CURRENCIES, SUPPORTED_CURRENCY_NAMES
+
+    for code in ("EUR", "SEK", "NOK", "PLN", "CZK", "HUF", "RON", "BGN", "GBP", "CHF"):
+        assert code in SUPPORTED_CURRENCIES, code
+    for code in ("USD", "BDT", "INR", "PKR", "TRY", "PHP"):
+        assert code in SUPPORTED_CURRENCIES, code
+    # Every code must carry a human-readable name for the picker.
+    assert set(SUPPORTED_CURRENCIES) == set(SUPPORTED_CURRENCY_NAMES)
+    assert all(name.strip() for name in SUPPORTED_CURRENCY_NAMES.values())
+    # DKK is the base currency, converting it to itself is meaningless.
+    assert "DKK" not in SUPPORTED_CURRENCIES
 
 
 def test_no_key_provider_used_when_env_var_unset(monkeypatch):

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Min Løn — Danish salary calculator",
+  title: "Min Løn: Danish salary calculator",
   description: "Estimate your Danish net salary under 2026 tax rules.",
 };
 
@@ -23,7 +23,7 @@ export default function RootLayout({
       </head>
       <body>
         {children}
-        <div className="site-footer">© Rakib Hasan 2025</div>
+        <div className="site-footer">© Rakib Hasan 2026</div>
       </body>
     </html>
   );

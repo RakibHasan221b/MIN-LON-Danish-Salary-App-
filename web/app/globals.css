@@ -243,6 +243,22 @@ select:focus {
   color: var(--text);
 }
 
+/* Paragraphs carry browser default margins that would double up on the
+   padding above, making blocks of these lines drift apart unevenly. */
+p.breakdown-dash-line {
+  margin: 0;
+}
+
+/* Checkboxes sit on their own row with the same breathing room as the
+   result lines, rather than being crammed together. */
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  padding: 10px 0;
+}
+
 .amount-positive {
   color: var(--positive);
 }

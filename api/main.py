@@ -13,11 +13,16 @@ from app.calculations.engine import calculate_annual_tax, calculate_monthly_with
 from app.data_loader import load_municipalities
 from app.models.salary_input import IncomeType, SalaryInput, TaxCardMode, TaxCardType
 from app.models.tax_result import TaxResult
-from api.currency import CurrencyUnavailableError, get_exchange_rate
+from api.currency import (
+    SUPPORTED_CURRENCY_NAMES,
+    CurrencyUnavailableError,
+    get_exchange_rate,
+)
 from api.schemas import (
     BreakdownLineOut,
     CalculateRequest,
     CalculateResponse,
+    CurrencyOut,
     ExchangeRateResponse,
     HolidayPayOut,
     MunicipalityOut,
@@ -179,6 +184,18 @@ def calculate(req: CalculateRequest) -> CalculateResponse:
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return _to_response(result)
+
+
+@app.get("/currencies", response_model=list[CurrencyOut])
+def currencies() -> list[dict]:
+    """Every currency the exchange-rate endpoint can convert to, so the
+    frontend can offer a searchable picker rather than a fixed dropdown."""
+    return [
+        {"code": code, "name": name}
+        for code, name in sorted(
+            SUPPORTED_CURRENCY_NAMES.items(), key=lambda kv: kv[1].lower()
+        )
+    ]
 
 
 @app.get("/exchange-rate/{currency}", response_model=ExchangeRateResponse)

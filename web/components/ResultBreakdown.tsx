@@ -102,7 +102,7 @@ export default function ResultBreakdown({
     if (label === "AM-bidrag") return amBidragLabel;
     if (label === "Municipal tax") return municipalTaxLabel;
     if (label === "Church tax") return churchTaxLabel;
-    if (/^A-tax|withheld tax/i.test(label)) return `${label}${withheldRateLabel}`;
+    if (/^A-tax|withheld tax/i.test(label)) return `A-skat${withheldRateLabel}`;
     return label;
   }
 
@@ -220,7 +220,7 @@ export default function ResultBreakdown({
           by a horizontal rule, the same way the reference app does it. */}
       <div className="card">
         <hr className="section-divider" />
-        <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
+        <label className="checkbox-row">
           <input
             type="checkbox"
             checked={showHoliday}
@@ -234,14 +234,7 @@ export default function ResultBreakdown({
         {showHoliday && <HolidayPaySection holidayPay={result.holiday_pay} />}
         {showHoliday && <hr className="section-divider" />}
         {showHoliday && (
-          <label
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              fontWeight: 600,
-            }}
-          >
+          <label className="checkbox-row">
             <input
               type="checkbox"
               checked={showTotalWithHoliday}
@@ -255,14 +248,7 @@ export default function ResultBreakdown({
         )}
 
         <hr className="section-divider" />
-        <label
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            fontWeight: 600,
-          }}
-        >
+        <label className="checkbox-row">
           <input
             type="checkbox"
             checked={showCurrency}
@@ -342,7 +328,7 @@ export default function ResultBreakdown({
               <>
                 {" "}
                 Tax percentage used: {(result.tax_percentage_used * 100).toFixed(1)}%
-                {result.tax_percentage_estimated ? " (estimated)" : " (as you entered it)"}.
+                {result.tax_percentage_estimated ? " (estimated from your municipality and the 2026 rules)" : ""}.
               </>
             )}
           </p>

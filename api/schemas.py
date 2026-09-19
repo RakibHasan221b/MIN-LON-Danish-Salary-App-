@@ -154,6 +154,11 @@ class MunicipalityOut(BaseModel):
     church_tax_rate: float
 
 
+class CurrencyOut(BaseModel):
+    code: str
+    name: str
+
+
 class ExchangeRateResponse(BaseModel):
     currency: str
     rate: float

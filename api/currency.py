@@ -20,7 +20,64 @@ from decimal import Decimal
 
 import requests
 
-SUPPORTED_CURRENCIES = {"USD", "EUR", "BDT"}
+# Every EU and EEA currency, plus the currencies most commonly wanted by
+# people working in Denmark and sending money home. open.er-api.com returns
+# a full DKK-based rates table, so anything listed here resolves from the
+# same single request the three original currencies used.
+SUPPORTED_CURRENCY_NAMES: dict[str, str] = {
+    # Euro area and the rest of the EU
+    "EUR": "Euro",
+    "BGN": "Bulgarian lev",
+    "CZK": "Czech koruna",
+    "HUF": "Hungarian forint",
+    "PLN": "Polish złoty",
+    "RON": "Romanian leu",
+    "SEK": "Swedish krona",
+    # Rest of the EEA, plus Switzerland and the UK
+    "NOK": "Norwegian krone",
+    "ISK": "Icelandic króna",
+    "CHF": "Swiss franc",
+    "GBP": "British pound",
+    # Widely used elsewhere
+    "USD": "US dollar",
+    "CAD": "Canadian dollar",
+    "AUD": "Australian dollar",
+    "NZD": "New Zealand dollar",
+    "JPY": "Japanese yen",
+    "CNY": "Chinese yuan",
+    "HKD": "Hong Kong dollar",
+    "SGD": "Singapore dollar",
+    "KRW": "South Korean won",
+    "INR": "Indian rupee",
+    "BDT": "Bangladeshi taka",
+    "PKR": "Pakistani rupee",
+    "LKR": "Sri Lankan rupee",
+    "NPR": "Nepalese rupee",
+    "IDR": "Indonesian rupiah",
+    "MYR": "Malaysian ringgit",
+    "PHP": "Philippine peso",
+    "THB": "Thai baht",
+    "VND": "Vietnamese dong",
+    "TRY": "Turkish lira",
+    "UAH": "Ukrainian hryvnia",
+    "RUB": "Russian ruble",
+    "AED": "UAE dirham",
+    "SAR": "Saudi riyal",
+    "ILS": "Israeli shekel",
+    "EGP": "Egyptian pound",
+    "MAD": "Moroccan dirham",
+    "NGN": "Nigerian naira",
+    "KES": "Kenyan shilling",
+    "GHS": "Ghanaian cedi",
+    "ZAR": "South African rand",
+    "BRL": "Brazilian real",
+    "MXN": "Mexican peso",
+    "ARS": "Argentine peso",
+    "COP": "Colombian peso",
+    "CLP": "Chilean peso",
+}
+
+SUPPORTED_CURRENCIES = set(SUPPORTED_CURRENCY_NAMES)
 
 _CACHE_TTL_SECONDS = 600
 _cache: dict[str, tuple[float, Decimal, str]] = {}  # currency -> (fetched_at, rate, source)

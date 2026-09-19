@@ -29,6 +29,7 @@ interface FormState {
   hours: string;
   minutes: string;
   fixedSalary: string;
+  tips: string;
   municipalityName: string;
   churchMembership: ChurchMembership;
   isAdult: boolean | null;
@@ -46,6 +47,7 @@ const DEFAULT_STATE: FormState = {
   hours: "",
   minutes: "0",
   fixedSalary: "",
+  tips: "",
   municipalityName: "København",
   churchMembership: null,
   isAdult: null,
@@ -102,6 +104,7 @@ export default function Home() {
             minutes: parseInt(form.minutes || "0", 10),
           }
         : { fixed_monthly_salary: parseFloat(form.fixedSalary) }),
+      ...(form.tips !== "" ? { tips: parseFloat(form.tips) } : {}),
       ...(form.taxCardChoice === "frikort"
         ? { remaining_frikort_amount: parseFloat(form.remainingFrikortAmount) }
         : {}),
@@ -128,7 +131,7 @@ export default function Home() {
   return (
     <main>
       <h1 className="page-title">Min Løn</h1>
-      <p className="subtitle page-title">Calculate your estimated Danish net salary — 2026 rules</p>
+      <p className="subtitle page-title">Your estimated Danish net salary, 2026 rules</p>
 
       {error && <div className="error-box">{error}</div>}
 
@@ -222,6 +225,29 @@ export default function Home() {
 
       {form.incomeMode && (
         <div className="card">
+          <div className="field">
+            <label className="field-label" htmlFor="tips">
+              Estimated tip (optional)
+            </label>
+            <input
+              id="tips"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              value={form.tips}
+              onChange={(e) => update("tips", e.target.value)}
+              placeholder="e.g. 500"
+            />
+            <p className="hint">
+              Tips paid through your payroll. They are taxed like ordinary pay, so
+              leave this blank if your tips are cash you receive directly.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {form.incomeMode && (
+        <div className="card">
           <MunicipalitySearch
             municipalities={municipalities}
             value={form.municipalityName}
@@ -231,9 +257,10 @@ export default function Home() {
           <div className="field">
             <label className="field-label">Are you a member of Folkekirken?</label>
             <p className="hint" style={{ marginTop: -4, marginBottom: 8 }}>
-              Folkekirken is Denmark&apos;s national (Lutheran) church. Most people born in
-              Denmark are automatically members unless they opted out, this affects a small
-              church tax. If you moved to Denmark, you likely are not a member.
+              Folkekirken is Denmark&apos;s national Lutheran church. People baptised into it
+              stay members until they opt out, and members pay a small church tax on top
+              of municipal tax. If you moved to Denmark, you are almost certainly not a
+              member.
             </p>
             <div className="toggle-group">
               <button
@@ -298,14 +325,14 @@ export default function Home() {
                 className={`toggle-btn ${form.taxCardChoice === "a" ? "active" : ""}`}
                 onClick={() => update("taxCardChoice", "a")}
               >
-                A-card / Main job
+                Hovedkort / Main job
               </button>
               <button
                 type="button"
                 className={`toggle-btn ${form.taxCardChoice === "b" ? "active" : ""}`}
                 onClick={() => update("taxCardChoice", "b")}
               >
-                B-card / Second job
+                Bikort / Second job
               </button>
               <button
                 type="button"
@@ -316,9 +343,10 @@ export default function Home() {
               </button>
             </div>
             <p className="hint">
-              A-card is your main job, most people have this. B-card is for a second job at
-              the same time, it has no tax-free allowance of its own. Frikort is the
-              tax-free card students and young people often use, up to a set balance.
+              Hovedkort is your main job, and most people have this one. Bikort is for a
+              second job you hold at the same time, and it carries no tax-free allowance
+              of its own. Frikort is the tax-free card you get while your yearly income
+              stays under the tax-free allowance.
             </p>
           </div>
 

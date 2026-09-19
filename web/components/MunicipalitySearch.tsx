@@ -27,12 +27,12 @@ export default function MunicipalitySearch({
   return (
     <div className="field">
       <label className="field-label" htmlFor="municipality-search">
-        Select your municipality
+        Which kommune (municipality) do you live in?
       </label>
       <input
         id="municipality-search"
         type="text"
-        placeholder="Search municipality... (e.g. Copenhagen, kob, Aarhus)"
+        placeholder="Search, e.g. Copenhagen or Aarhus"
         value={open ? query : value}
         onFocus={() => {
           setOpen(true);
