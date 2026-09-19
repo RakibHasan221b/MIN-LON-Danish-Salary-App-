@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import type { CalculateResponse } from "@/lib/api";
+import CurrencySection from "@/components/CurrencySection";
+import HolidayPaySection from "@/components/HolidayPaySection";
+import TotalWithHolidaySection from "@/components/TotalWithHolidaySection";
 
 function formatDKK(amount: number): string {
   const rounded = Math.round(amount);
@@ -27,6 +30,9 @@ export default function ResultBreakdown({
   const isStandard = result.calculation_basis === "standard_estimate";
   const isMonthlyPayslip = result.calculation_basis === "monthly_payslip";
   const [showDetails, setShowDetails] = useState(false);
+  const [showHoliday, setShowHoliday] = useState(false);
+  const [showTotalWithHoliday, setShowTotalWithHoliday] = useState(false);
+  const [showCurrency, setShowCurrency] = useState(false);
 
   // Level 2: the main breakdown lines. Monthly-first flow (product
   // decision): use the backend's own exact-order breakdown (Gross
@@ -137,6 +143,63 @@ export default function ResultBreakdown({
         <div className="effective-rate">
           Effective tax rate: <strong>{(result.effective_tax_rate * 100).toFixed(1)}%</strong>
         </div>
+      </div>
+
+      {/* Holiday pay and currency, one click each, right on the main
+          screen (matches the old Streamlit app's layout), not tucked
+          inside the collapsed details section below. */}
+      <div className="card">
+        <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
+          <input
+            type="checkbox"
+            checked={showHoliday}
+            onChange={(e) => {
+              setShowHoliday(e.target.checked);
+              if (!e.target.checked) setShowTotalWithHoliday(false);
+            }}
+          />
+          Show Holiday Pay Calculation
+        </label>
+        {showHoliday && <HolidayPaySection holidayPay={result.holiday_pay} />}
+        {showHoliday && (
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              fontWeight: 600,
+              marginTop: 12,
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={showTotalWithHoliday}
+              onChange={(e) => setShowTotalWithHoliday(e.target.checked)}
+            />
+            Show Total Salary Including Holiday Pay
+          </label>
+        )}
+        {showHoliday && showTotalWithHoliday && (
+          <TotalWithHolidaySection total={result.total_with_holiday} />
+        )}
+
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontWeight: 600,
+            marginTop: showHoliday ? 20 : 12,
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={showCurrency}
+            onChange={(e) => setShowCurrency(e.target.checked)}
+          />
+          Enable Currency Conversion
+        </label>
+        {showCurrency && <CurrencySection result={result} />}
       </div>
 
       {/* LEVEL 3 — expandable additional details, progressive disclosure */}
