@@ -37,6 +37,8 @@ interface FormState {
 
   // A-card only.
   monthlyDeduction: string;
+  // A-card and B-card: the trækprocent printed on the payslip, optional.
+  taxPercentage: string;
   // Frikort only.
   remainingFrikortAmount: string;
 }
@@ -53,6 +55,7 @@ const DEFAULT_STATE: FormState = {
   isAdult: null,
   taxCardChoice: "a",
   monthlyDeduction: "",
+  taxPercentage: "",
   remainingFrikortAmount: "",
 };
 
@@ -109,12 +112,22 @@ export default function Home() {
         ? { remaining_frikort_amount: parseFloat(form.remainingFrikortAmount) }
         : {}),
       // A-card: fradrag if entered, otherwise the standard 2026 estimate.
-      ...(form.taxCardChoice === "a" && form.monthlyDeduction !== ""
-        ? { monthly_deduction: parseFloat(form.monthlyDeduction) }
+      // A trækprocent only takes effect on the payslip path, which the
+      // backend dispatches on monthly_deduction being present, so sending a
+      // percentage without a deduction would silently do nothing. When the
+      // user gives a percentage but leaves the fradrag blank, the fradrag is
+      // therefore sent explicitly as 0.
+      ...(form.taxCardChoice === "a" &&
+      (form.monthlyDeduction !== "" || form.taxPercentage !== "")
+        ? { monthly_deduction: parseFloat(form.monthlyDeduction || "0") }
         : {}),
-      // B-card (second job): estimated from kommune/church/2026 rules,
-      // deliberately with no monthly fradrag applied.
+      // B-card (second job): no monthly fradrag of its own.
       ...(form.taxCardChoice === "b" ? { monthly_deduction: 0 } : {}),
+      // Trækprocent is a percentage on the payslip (38) but a fraction in
+      // the API (0.38). Frikort uses a different path and ignores it.
+      ...(form.taxCardChoice !== "frikort" && form.taxPercentage !== ""
+        ? { tax_percentage: parseFloat(form.taxPercentage) / 100 }
+        : {}),
     };
 
     try {
@@ -369,6 +382,30 @@ export default function Home() {
                 Example: 5207 kr. You can find this on your payslip or skattekort. We&apos;ll
                 estimate your tax from your municipality and the 2026 rules, no need to know
                 your exact tax percentage.
+              </p>
+            </div>
+          )}
+
+          {form.taxCardChoice !== "frikort" && (
+            <div className="field">
+              <label className="field-label" htmlFor="tax-percentage">
+                Your tax percentage / Trækprocent (optional)
+              </label>
+              <input
+                id="tax-percentage"
+                type="number"
+                inputMode="decimal"
+                min={0}
+                max={100}
+                value={form.taxPercentage}
+                onChange={(e) => update("taxPercentage", e.target.value)}
+                placeholder="e.g. 38"
+              />
+              <p className="hint">
+                On your payslip this is the percentage next to A-skat, and it is on
+                your skattekort too, right beside your fradrag. Fill it in and we
+                calculate exactly what your employer withholds instead of estimating
+                it. Leave it blank and we estimate it from your municipality.
               </p>
             </div>
           )}

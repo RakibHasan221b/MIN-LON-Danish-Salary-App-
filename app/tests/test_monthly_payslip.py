@@ -400,3 +400,33 @@ def test_hourly_shift_below_atp_threshold_is_not_forced_to_a_fixed_value():
     assert result.am_bidrag == Decimal("84")
     assert result.taxable_income == Decimal("0")
     assert result.net_income == Decimal("966")
+
+
+def test_supplied_traekprocent_reproduces_the_reference_app_exactly():
+    """With the real trækprocent entered, the app must stop estimating and
+    reproduce a payslip exactly. These figures are the owner's own reference
+    app's output for the same inputs (160 hours at 150 kr, 5,207 fradrag,
+    38% A-skat): ATP 99, AM-bidrag 1,912, A-skat 6,377, net 15,612.
+    """
+    result = calculate_monthly_withholding(
+        SalaryInput(
+            income_type=IncomeType.HOURLY_WAGE,
+            hourly_wage=Decimal("150"),
+            hours=160,
+            minutes=0,
+            municipality_name="København",
+            is_church_member=False,
+            monthly_deduction=Decimal("5207"),
+            tax_percentage=Decimal("0.38"),
+        )
+    )
+
+    assert result.tax_percentage_estimated is False
+    assert result.tax_percentage_used == Decimal("0.38")
+    assert result.gross_income == Decimal("24000")
+    assert result.atp_employee_contribution == Decimal("99")
+    assert result.am_bidrag == Decimal("1912")
+    assert result.state_tax_total == Decimal("6377")
+    assert result.net_income == Decimal("15612")
+    # The displayed net must reconcile with the displayed total.
+    assert result.gross_income - result.total_tax == result.net_income
