@@ -47,7 +47,7 @@ h1 {
   font-size: 2.75rem;
   font-weight: 700;
   color: var(--accent);
-  margin: 8px 0 30px;
+  margin: 8px 0 10px;
   letter-spacing: 4px;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
