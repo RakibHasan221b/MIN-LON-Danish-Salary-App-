@@ -65,6 +65,8 @@ export default function Home() {
   const [result, setResult] = useState<CalculateResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showFradragHelp, setShowFradragHelp] = useState(false);
+  const [showTaxPercentHelp, setShowTaxPercentHelp] = useState(false);
 
   useEffect(() => {
     fetchMunicipalities().then(setMunicipalities).catch(() => setError("Could not load municipality list."));
@@ -265,7 +267,7 @@ export default function Home() {
           />
 
           <div className="field">
-            <label className="field-label">Are you a member of Folkekirken?</label>
+            <label className="field-label">Are you a member of Folkekirken (Church of Denmark)?</label>
             <p className="hint" style={{ marginTop: -4, marginBottom: 8 }}>
               Folkekirken is Denmark&apos;s national Lutheran church. People baptised into it
               stay members until they opt out, and members pay a small church tax on top
@@ -364,7 +366,28 @@ export default function Home() {
           {form.taxCardChoice === "a" && (
             <div className="field">
               <label className="field-label" htmlFor="monthly-deduction">
-                Monthly deduction / Fradrag (DKK, optional)
+                Monthly deduction / Fradrag (DKK){" "}
+                <button
+                  type="button"
+                  aria-label="What is Fradrag?"
+                  onClick={() => setShowFradragHelp((v) => !v)}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 18,
+                    height: 18,
+                    borderRadius: "50%",
+                    border: "1px solid currentColor",
+                    background: "none",
+                    fontSize: 12,
+                    lineHeight: 1,
+                    cursor: "pointer",
+                    verticalAlign: "middle",
+                  }}
+                >
+                  ?
+                </button>
               </label>
               <input
                 id="monthly-deduction"
@@ -376,17 +399,46 @@ export default function Home() {
                 placeholder="e.g. 5207"
               />
               <p className="hint">
-                Example: 5207 kr. You can find this on your payslip or skattekort. We&apos;ll
-                estimate your tax from your municipality and the 2026 rules, no need to know
-                your exact tax percentage.
+                Example: 5,500 kr. You can find this on your payslip or skattekort.
               </p>
+              {showFradragHelp && (
+                <p className="hint">
+                  <strong>What is Fradrag?</strong>
+                  <br />
+                  Your monthly tax deduction. You can find this amount on your skattekort
+                  or payslip.
+                  <br />
+                  Example: 5,500 kr.
+                </p>
+              )}
             </div>
           )}
 
           {form.taxCardChoice !== "frikort" && (
             <div className="field">
               <label className="field-label" htmlFor="tax-percentage">
-                Your tax percentage / Trækprocent (optional)
+                Your tax percentage / Trækprocent{" "}
+                <button
+                  type="button"
+                  aria-label="What is Trækprocent?"
+                  onClick={() => setShowTaxPercentHelp((v) => !v)}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 18,
+                    height: 18,
+                    borderRadius: "50%",
+                    border: "1px solid currentColor",
+                    background: "none",
+                    fontSize: 12,
+                    lineHeight: 1,
+                    cursor: "pointer",
+                    verticalAlign: "middle",
+                  }}
+                >
+                  ?
+                </button>
               </label>
               <input
                 id="tax-percentage"
@@ -399,11 +451,19 @@ export default function Home() {
                 placeholder="e.g. 38"
               />
               <p className="hint">
-                On your payslip this is the percentage next to A-skat, and it is on
-                your skattekort too, right beside your fradrag. Fill it in and we
-                calculate exactly what your employer withholds instead of estimating
-                it. Leave it blank and we estimate it from your municipality.
+                Example: 38%. You can find this on your payslip or skattekort.
               </p>
+              {showTaxPercentHelp && (
+                <p className="hint">
+                  <strong>What is Trækprocent?</strong>
+                  <br />
+                  The percentage used to calculate your A-skat. You can find it on your
+                  skattekort or payslip. It is often around 37&ndash;38%, but enter the
+                  exact percentage shown on yours.
+                  <br />
+                  Example: 38%.
+                </p>
+              )}
             </div>
           )}
 
