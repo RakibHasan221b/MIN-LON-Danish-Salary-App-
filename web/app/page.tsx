@@ -399,16 +399,18 @@ export default function Home() {
                 placeholder="e.g. 5207"
               />
               <p className="hint">
-                Example: 5,500 kr. You can find this on your payslip or skattekort.
+                The amount of your monthly salary that is tax-free. Find it on your
+                skattekort or payslip.
+                <br />
+                Example: 5,500 kr.
               </p>
               {showFradragHelp && (
                 <p className="hint">
                   <strong>What is Fradrag?</strong>
                   <br />
-                  Your monthly tax deduction. You can find this amount on your skattekort
-                  or payslip.
-                  <br />
-                  Example: 5,500 kr.
+                  Fradrag is the amount of your monthly income that is deducted before
+                  A-skat is calculated. It reduces the amount of your salary that is
+                  taxed.
                 </p>
               )}
             </div>
@@ -451,17 +453,19 @@ export default function Home() {
                 placeholder="e.g. 38"
               />
               <p className="hint">
-                Example: 38%. You can find this on your payslip or skattekort.
+                The percentage used to calculate the A-skat withheld from your salary.
+                Find it on your payslip or skattekort.
+                <br />
+                Example: 38%
               </p>
               {showTaxPercentHelp && (
                 <p className="hint">
                   <strong>What is Trækprocent?</strong>
                   <br />
-                  The percentage used to calculate your A-skat. You can find it on your
-                  skattekort or payslip. It is often around 37&ndash;38%, but enter the
-                  exact percentage shown on yours.
-                  <br />
-                  Example: 38%.
+                  Your Trækprocent is the percentage used to calculate the A-skat withheld
+                  from your salary. On your payslip, it is usually shown next to A-skat.
+                  You can also find it on your skattekort. It is often around
+                  37&ndash;38%, but your exact percentage may be different.
                 </p>
               )}
             </div>
